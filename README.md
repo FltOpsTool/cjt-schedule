@@ -53,6 +53,15 @@ The app repo is public and holds no schedule data. Your monthly JSON files live 
 - Without a connection the app simply uses the schedule already stored on the device.
 - Manual import still works as a fallback.
 
+## Family view
+
+A simpler read-only view for family devices. It shows report and release times, flight numbers, routes, aircraft registration and type, positioning legs, layover city and hotel name, office days and "Simulator training". It hides crew names, pairing IDs, locators, hotel phones, tags, SIM device numbers, and the import, backup and delete tools.
+
+- Switch a device: Settings, View, Family. On Android Chrome you can also open the app with `?view=family` added to the address.
+- On iPhone or iPad, a Home Screen app has its own storage, so set the view inside the installed app (Settings, View, Family).
+- Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. The link formats are unverified, so report any that fail.
+- Family view hides data on screen only. The JSON on that device still contains the full schedule.
+
 ## Install on iPhone or iPad
 
 1. Open the app address in **Safari** (not another browser).

@@ -70,7 +70,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 a{color:inherit}
 .app{max-width:560px;margin:0 auto;padding:0 12px 48px}
 .top{display:flex;align-items:center;gap:8px;padding:10px 0;position:sticky;top:0;background:var(--bg);z-index:5}
-.top h1{font-size:19px;margin:0;flex:1;letter-spacing:.01em}
+.top h1{font-size:19px;margin:0;flex:1;min-width:0;white-space:nowrap;letter-spacing:.01em}
+.top h1 small{display:block;font-size:11px;font-weight:800;line-height:1.1;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+@media (max-width:399px){.pill.off{font-size:10px;padding:3px 7px}}
+@media (max-width:349px){.pill.off{display:none}}
 .iconbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
 .iconbtn svg{display:block}
 .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);border:1px solid var(--pill-line);white-space:nowrap}
@@ -166,6 +169,7 @@ a{color:inherit}
 .t-big .ab{font-size:13px;font-weight:700;color:var(--muted)}
 .t-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip.trk{min-height:40px;padding:0 14px;text-decoration:none;border-color:var(--accent);color:var(--accent);font-weight:700}
 .chip{display:inline-flex;align-items:center;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--inset);border:1px solid var(--line);min-height:28px}
 button.chip{min-height:40px;padding:0 14px}
 .leg-card{display:grid;grid-template-columns:7px 1fr;border-radius:12px;overflow:hidden;background:var(--surface2);margin:10px 0 0}
@@ -261,7 +265,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 (() => {
 'use strict';
 
-const APP_VERSION = '1.2.3';
+const APP_VERSION = '1.3.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -270,9 +274,18 @@ const KINDS = ['flight','deadhead','ground','event'];
 /* simulator event codes name the device, not a time slot */
 const SIM_DEVICES = { SMA: { name: 'SIM A', id: 'TC 1057' }, SMB: { name: 'SIM B', id: 'TC 1147' } };
 const simDev = l => SIM_DEVICES[(l.flight || '').toUpperCase()] || null;
+const FAM = () => S.view === 'family';
+/* Cargojet flights appear on tracking sites under the CJT call sign (W8 377 is CJT377) */
+function callsignOf(l) {
+  if (l.kind !== 'flight' && l.kind !== 'deadhead') return null;
+  const m = /^(?:W8)?\s*(\d{1,4})$/i.exec((l.flight || '').trim());
+  return m ? 'CJT' + m[1] : null;
+}
+function setView(v) { S.view = v === 'family' ? 'family' : 'full'; try { localStorage.setItem('cjt.view', S.view); } catch { /* ignore */ } }
 const simName = l => { const d = simDev(l); return d ? `${d.name} - ${d.id}` : null; };
 
 const S = {
+  view: 'full',
   sync: { repo: 'FltOpsTool/cjt-schedule-data', token: '', last: null, shas: {}, error: '' },
   nextKey: null, nextDays: new Set(), nextStarted: false, nextMark: null,
   pairings: [], days: [], shots: [],
@@ -644,7 +657,7 @@ async function autoSync(force) {
 function legsOf(p) { return p.duties.flatMap(d => d.legs); }
 function isSim(p) { const l = legsOf(p); return l.length > 0 && l.every(x => x.kind === 'event'); }
 function pCode(p) {
-  if (isSim(p)) return [...new Set(legsOf(p).map(l => l.flight))].join('/');
+  if (isSim(p)) return FAM() ? 'SIM' : [...new Set(legsOf(p).map(l => l.flight))].join('/');
   return p.id;
 }
 function routeOf(p) {
@@ -764,6 +777,8 @@ function badgeOf(l) {
   if (l.kind === 'ground') return /limo/i.test(l.note || '') ? 'LIMO' : 'GROUND';
   return /sim/i.test(l.desc || '') ? 'SIM' : 'EVENT';
 }
+const titleOf = p => (isSim(p) ? (FAM() ? 'Simulator training' : `${pCode(p)} · ${p.id}`) : p.id);
+const tagsOf = p => (FAM() ? [] : (p.tags || []));
 function colorOf(l) { return l.kind === 'flight' ? 'var(--flight)' : l.kind === 'event' ? 'var(--event)' : 'var(--dead)'; }
 function copyText(t) {
   const done = () => toast(`Copied ${t}`);
@@ -774,16 +789,22 @@ function legCard(l) {
   const isEv = l.kind === 'event';
   const route = l.from === l.to ? l.from : `${l.from} → ${l.to}`;
   const chips = [];
-  if (l.desc || simName(l)) chips.push(h('span', { class: 'chip', text: simName(l) || l.desc }));
-  if (l.briefingMin) chips.push(h('span', { class: 'chip', text: `Briefing ${fmtDur(l.briefingMin)} before` }));
-  if (l.debriefMin) chips.push(h('span', { class: 'chip', text: `Debrief ${fmtDur(l.debriefMin)} after` }));
+  if (FAM() && l.kind === 'event') chips.push(h('span', { class: 'chip', text: 'Simulator' }));
+  else if (l.desc || simName(l)) chips.push(h('span', { class: 'chip', text: simName(l) || l.desc }));
+  if (l.briefingMin && !FAM()) chips.push(h('span', { class: 'chip', text: `Briefing ${fmtDur(l.briefingMin)} before` }));
+  if (l.debriefMin && !FAM()) chips.push(h('span', { class: 'chip', text: `Debrief ${fmtDur(l.debriefMin)} after` }));
   if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
-  if (l.locator) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
-  if (l.note) chips.push(h('span', { class: 'chip', text: l.note }));
+  const cs = callsignOf(l);
+  if (cs) {
+    const trk = (name, href) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${name}`, text: `Track on ${name}` });
+    chips.push(trk('FlightAware', `https://flightaware.com/live/flight/${cs}`), trk('Flightradar24', `https://www.flightradar24.com/${cs}`));
+  }
+  if (l.locator && !FAM()) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
+  if (l.note && !FAM()) chips.push(h('span', { class: 'chip', text: l.note }));
   return h('div', { class: 'leg-card ' + (l.kind === 'flight' ? 'k-flight' : l.kind === 'event' ? 'k-event' : 'k-dead') },
     h('div', { class: 'stripe' }),
     h('div', { class: 'lm' },
-      h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
+      h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: FAM() && l.kind === 'event' ? 'Simulator' : FAM() && l.kind === 'ground' ? '' : l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
       h('div', { class: 'route', text: route }),
       h('div', { class: 'times' }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
       chips.length ? h('div', { class: 'chips' }, chips) : null));
@@ -803,9 +824,9 @@ function restCard(r, duty, next) {
     h('div', { class: 'rd', text: fmtDur(r.minutes) }),
     gapMin != null && gapMin !== r.minutes ? h('div', { class: 'warn', text: `Check: release to next report is ${fmtDur(gapMin)}.` }) : null,
     hotel.name ? h('div', { class: 'hn', text: hotel.name }) : null,
-    hotel.phone ? callRow('Hotel', hotel.name || 'front desk', hotel.phone) : null,
-    tr.phone || tr.name ? h('div', { class: 'small muted', style: 'margin-top:10px', text: `Ground transportation${tr.station ? ' in ' + tr.station : ''}` }) : null,
-    tr.phone ? callRow('Transport', tr.name || 'transport', tr.phone) : (tr.name ? h('div', { class: 'hn', text: tr.name }) : null));
+    hotel.phone && !FAM() ? callRow('Hotel', hotel.name || 'front desk', hotel.phone) : null,
+    (tr.phone || tr.name) && !FAM() ? h('div', { class: 'small muted', style: 'margin-top:10px', text: `Ground transportation${tr.station ? ' in ' + tr.station : ''}` }) : null,
+    FAM() ? null : tr.phone ? callRow('Transport', tr.name || 'transport', tr.phone) : (tr.name ? h('div', { class: 'hn', text: tr.name }) : null));
 }
 function dutyCard(p, d, i) {
   const days = datesOf(Date.parse(d.start.t), Date.parse(d.end.t));
@@ -813,11 +834,11 @@ function dutyCard(p, d, i) {
   const kids = [
     h('div', { class: 'dh' }, h('h3', { text: `DUTY ${i + 1} OF ${p.duties.length}` }), h('span', { text: sv.date })),
     h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation || ''}`.trim(), d.start), timeBlock(`Release ${d.endStation || ''}`.trim(), d.end)),
-    h('div', { class: 'chips', style: 'margin-top:0' },
+    FAM() ? null : h('div', { class: 'chips', style: 'margin-top:0' },
       h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
       d.flightMinutes != null ? h('span', { class: 'chip', text: `Flight time ${fmtDur(d.flightMinutes)}` }) : null)
   ];
-  if (d.crew && d.crew.length) {
+  if (d.crew && d.crew.length && !FAM()) {
     kids.push(h('div', { style: 'margin-top:12px' }, d.crew.map(c =>
       h('span', { class: 'person' + (isMe(c) ? ' me' : '') }, h('span', { class: `role r-${c.role}`, title: ROLE[c.role] || c.role, text: c.role }), c.name, isMe(c) ? h('span', { class: 'you', text: 'you' }) : null))));
   }
@@ -852,8 +873,8 @@ function openPairing(key, scrollDay) {
     const body = [];
     const head = h('div', { class: 'card' },
       h('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap' },
-        h('div', { class: 'pid', text: isSim(p) ? `${pCode(p)} · ${p.id}` : p.id }),
-        (p.tags || []).map(t => h('span', { class: 'tag', text: t }))),
+        h('div', { class: 'pid', text: titleOf(p) }),
+        tagsOf(p).map(t => h('span', { class: 'tag', text: t }))),
       h('div', { class: 'range' },
         h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time} ${sv.ab}`),
         h('div', {}, h('span', { class: 'muted', text: 'End   ' }), `${ev.date} ${ev.time} ${ev.ab}`)),
@@ -862,11 +883,12 @@ function openPairing(key, scrollDay) {
         h('div', { class: 'stat' }, h('span', { text: 'Flight time' }), h('b', { text: flight ? fmtDur(flight) : '–' })),
         h('div', { class: 'stat' }, h('span', { text: 'Duties' }), h('b', { text: String(p.duties.length) })),
         h('div', { class: 'stat' }, h('span', { text: 'Layovers' }), h('b', { text: String(p.duties.filter(d => d.rest).length) }))),
-      h('div', { class: 'small muted', style: 'margin-top:10px', text: `Schedule generated ${gen.date} ${gen.time} UTC` }),
+      h('div', { class: 'small muted gen', style: 'margin-top:10px', text: `Schedule generated ${gen.date} ${gen.time} UTC` }),
       p.prev ? h('div', { class: 'notice', text: `Revised when imported ${labelKey(keyOf(Date.parse(p.revisedAt), S.baseTz))}. The earlier version was generated ${(() => { const g = view({ t: p.prev.snapshot.generatedUtc || p.prev.replacedAt, tz: 'UTC' }, 'utc'); return `${g.date} ${g.time} UTC`; })()}.` }) : null);
+    if (FAM()) head.querySelectorAll('.stats,.notice,.gen').forEach(e => e.remove());
     body.push(head);
     const crew = crewAll(p);
-    if (crew.length) {
+    if (crew.length && !FAM()) {
       body.push(h('div', { class: 'card crewrow' },
         h('div', { class: 'sect', style: 'margin-top:0', text: 'Crew' }),
         crew.map(c => h('div', { style: 'margin-bottom:6px' },
@@ -890,7 +912,7 @@ function openPairing(key, scrollDay) {
       if (files.length) toast(`Added ${files.length} screenshot${files.length > 1 ? 's' : ''}`);
       draw();
     } });
-    body.push(h('div', { class: 'card' },
+    body.push(h('div', { class: 'card full-only' },
       h('div', { class: 'sect', style: 'margin-top:0', text: 'Source screenshots' }),
       h('div', { class: 'small muted', text: 'Keep the original VMO screenshots with this pairing as a fallback.' }),
       h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn', onclick: () => fileIn.click() }, icon('plus', 18), 'Add screenshots'), fileIn),
@@ -898,7 +920,7 @@ function openPairing(key, scrollDay) {
         const u = URL.createObjectURL(s.blob); urls.push(u);
         return h('button', { type: 'button', 'aria-label': `Open screenshot ${s.name || ''}`, onclick: () => openViewer(s, draw) }, h('img', { src: u, alt: s.name || 'screenshot', loading: 'lazy' }));
       })) : null));
-    body.push(h('div', { style: 'text-align:center;margin-top:20px' },
+    body.push(h('div', { class: 'full-only', style: 'text-align:center;margin-top:20px' },
       h('button', { type: 'button', class: 'btn danger', onclick: async () => {
         if (!confirm(`Remove pairing ${p.id} and its screenshots from this device?`)) return;
         S.pairings = S.pairings.filter(x => x.key !== key);
@@ -910,9 +932,9 @@ function openPairing(key, scrollDay) {
     sheet.replaceChildren(
       h('div', { class: 'sheet-head' },
         wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
-        h('div', { class: 'sheet-title', text: `Pairing ${p.id}` }),
+        h('div', { class: 'sheet-title', text: FAM() && isSim(p) ? 'Simulator training' : `Pairing ${p.id}` }),
         seg(MODES(), S.mode, m => { setMode(m); draw(); render(); })),
-      h('div', { class: 'sheet-body' }, body));
+      h('div', { class: 'sheet-body' }, FAM() ? body.filter(el => !el.classList.contains('full-only')) : body));
     scroller.scrollTop = top;
   };
   draw();
@@ -947,10 +969,10 @@ function agendaRow(p, onOpen) {
   return h('button', { type: 'button', class: 'row' + (p.key === S.nextKey ? ' isnext' : ''), 'data-pk': p.key, style: `--c:${kindColor(p)}`, onclick: onOpen, 'aria-label': `Open pairing ${p.id}` },
     h('div', { class: 'stripe' }),
     h('div', { class: 'rb' },
-      h('div', { class: 'rt' }, isSim(p) ? `${pCode(p)} · ${p.id}` : p.id, p.key === S.nextKey ? h('span', { class: 'tag nowtag', text: pS(p) <= Date.now() ? 'IN PROGRESS' : 'NEXT DUTY' }) : null, (p.tags || []).map(t => h('span', { class: 'tag', text: t }))),
+      h('div', { class: 'rt' }, titleOf(p), p.key === S.nextKey ? h('span', { class: 'tag nowtag', text: pS(p) <= Date.now() ? 'IN PROGRESS' : 'NEXT DUTY' }) : null, tagsOf(p).map(t => h('span', { class: 'tag', text: t }))),
       h('div', { class: 'rs', text: `${sv.date} ${sv.time} → ${sv.key === ev.key ? '' : ev.date + ' '}${ev.time} ${ev.ab}` }),
-      h('div', { class: 'rm', text: isSim(p) ? `${[...new Set(legsOf(p).map(l => simName(l) || l.desc || 'Event'))].join(', ')} · ${routeOf(p)}` : routeOf(p) }),
-      others.length ? h('div', { class: 'rm', text: `With ${others.join(', ')}` }) : null),
+      h('div', { class: 'rm', text: isSim(p) && !FAM() ? `${[...new Set(legsOf(p).map(l => simName(l) || l.desc || 'Event'))].join(', ')} · ${routeOf(p)}` : routeOf(p) }),
+      others.length && !FAM() ? h('div', { class: 'rm', text: `With ${others.join(', ')}` }) : null),
     icon('right', 18));
 }
 function upcoming() { const now = Date.now(); return S.pairings.filter(p => pE(p) > now).sort((a, b) => pS(a) - pS(b))[0]; }
@@ -1050,8 +1072,8 @@ function render() {
   const title = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   const kids = [
     h('header', { class: 'top' },
-      h('h1', { text: 'CJT Schedule' }),
-      ready ? h('span', { class: 'pill', text: 'Offline ready' }) : null,
+      h('h1', {}, 'CJT Schedule', FAM() ? h('small', { text: 'Family view' }) : null),
+      ready ? h('span', { class: 'pill off', text: 'Offline ready' }) : null,
       h('button', { type: 'button', class: 'iconbtn', id: 'themebtn', 'aria-label': `Theme: ${S.theme === 'auto' ? 'Auto' : S.theme === 'day' ? 'Day' : 'Night'}. Tap to change`, onclick: () => {
         const order = ['auto', 'day', 'night'];
         setTheme(order[(order.indexOf(S.theme) + 1) % 3]);
@@ -1181,6 +1203,10 @@ async function openSettings() {
       h('div', { class: 'sheet-title', text: 'Settings' })),
     h('div', { class: 'sheet-body' },
       h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'View' }),
+        seg([['full', 'Full'], ['family', 'Family']], S.view, v => { setView(v); render(); closeSheet(); }, 'View'),
+        h('div', { class: 'small muted', style: 'margin-top:8px', text: 'Family view hides crew, simulator, booking and phone details and keeps report and release times, flights, aircraft and tracking links.' })),
+      h('div', { class: 'card' },
         h('div', { class: 'sect', style: 'margin-top:0', text: 'Appearance' }),
         themeHost,
         h('div', { class: 'small muted', style: 'margin-top:8px', text: 'Auto follows the device setting. Day is a bright palette for sunlight, Night is easy on the eyes in the dark. The sun and moon button at the top also changes it.' })),
@@ -1194,7 +1220,7 @@ async function openSettings() {
       h('div', { class: 'card' },
         h('div', { class: 'sect', style: 'margin-top:0', text: 'Sync from GitHub' }),
         syncHost),
-      h('div', { class: 'card' },
+      h('div', { class: 'card full-only' },
         h('div', { class: 'sect', style: 'margin-top:0', text: 'Import schedule (manual)' }),
         h('div', { class: 'small muted', text: 'Load a JSON file by hand if you are not using GitHub sync. Importing again updates changed pairings and keeps the earlier version noted.' }),
         h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn primary', onclick: () => fileIn.click(), text: 'Choose JSON file' }), fileIn),
@@ -1204,7 +1230,7 @@ async function openSettings() {
           h('label', { class: 'check' }, h('input', { type: 'radio', name: 'im', onchange: () => { impMode = 'replace'; } }), 'Replace all')),
         h('button', { type: 'button', class: 'btn', onclick: () => { if (paste.value.trim()) run(paste.value); else showRes('Paste some JSON first.', false); }, text: 'Import pasted JSON' }),
         result),
-      h('div', { class: 'card' },
+      h('div', { class: 'card full-only' },
         h('div', { class: 'sect', style: 'margin-top:0', text: 'Backup' }),
         h('label', { class: 'check' }, withShots, 'Include screenshots (larger file)'),
         h('button', { type: 'button', class: 'btn', onclick: async () => { try { await exportBackup(withShots.checked); toast('Backup saved to Downloads'); } catch (e) { toast('Backup failed: ' + e.message); } }, text: 'Export backup file' })),
@@ -1220,7 +1246,7 @@ async function openSettings() {
         h('div', { class: 'sect', style: 'margin-top:0', text: 'About' }),
         kv('Version', APP_VERSION),
         h('div', { class: 'small muted', style: 'margin-top:8px', text: 'All schedule data stays on this device. Nothing is uploaded. The hosted page contains no schedule data.' })),
-      h('div', { style: 'text-align:center' },
+      h('div', { class: 'full-only', style: 'text-align:center' },
         h('button', { type: 'button', class: 'btn danger', onclick: async () => {
           if (!confirm('Delete ALL pairings, days and screenshots from this device? This cannot be undone.')) return;
           await dbClear('pairings'); await dbClear('days'); await dbClear('shots');
@@ -1228,6 +1254,7 @@ async function openSettings() {
           S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
           closeSheet(); render(); toast('All data deleted');
         } }, icon('trash', 18), 'Delete all data'))));
+  if (FAM()) sheet.querySelectorAll('.full-only').forEach(e => e.remove());
 }
 
 /* ---------- boot ---------- */
@@ -1240,6 +1267,8 @@ setInterval(() => {
 
 async function init() {
   try { const m = localStorage.getItem('cjt.mode'); if (['local', 'base', 'utc'].includes(m)) S.mode = m; } catch { /* ignore */ }
+  try { const v = localStorage.getItem('cjt.view'); if (v === 'family') S.view = 'family'; } catch { /* ignore */ }
+  try { const q = new URLSearchParams(location.search).get('view'); if (q === 'family' || q === 'full') setView(q); } catch { /* ignore */ }
   try { const t = localStorage.getItem('cjt.theme'); if (['auto', 'day', 'night'].includes(t)) S.theme = t; } catch { /* ignore */ }
   applyTheme();
   const onChange = f => (darkMQ.addEventListener ? darkMQ.addEventListener('change', f) : null);
