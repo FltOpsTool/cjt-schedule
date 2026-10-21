@@ -24,7 +24,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   color-scheme:dark;
   --bg:#0b1220; --surface:#141d30; --surface2:#1b2740; --line:#2a3858; --line2:#1f2b46;
   --text:#e9eef7; --muted:#93a1bb; --accent:#4fc3dc; --accent-ink:#06222a;
-  --flight:#ffd400; --flight-ink:#14110a; --dead:#ff4fd8; --dead-ink:#14110a; --event:#e0933a; --event-ink:#14110a;
+  --flight:#ffd400; --flight-ink:#14110a; --dead:#ff4fd8; --dead-ink:#14110a; --event:#b266ff; --event-ink:#12091c;
   --office:#d98a1b; --office-ink:#1b1200;
   --warn:#ff8a65; --ok:#58d68d;
   --inset:#0f1729; --head:#101a2c; --dim:#10182a;
@@ -44,7 +44,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   color-scheme:light;
   --bg:#f3f5f9; --surface:#ffffff; --surface2:#eaeef6; --line:#cdd6e6; --line2:#dde4f0;
   --text:#101828; --muted:#566178; --accent:#0a6f8a; --accent-ink:#ffffff;
-  --flight:#c27d00; --flight-ink:#120b00; --dead:#c4188f; --dead-ink:#ffffff; --event:#b3560a; --event-ink:#ffffff;
+  --flight:#c27d00; --flight-ink:#120b00; --dead:#c4188f; --dead-ink:#ffffff; --event:#7b1fe0; --event-ink:#ffffff;
   --office:#f0a53a; --office-ink:#2a1700;
   --warn:#b4400f; --ok:#15703f;
   --inset:#f4f6fb; --head:#e6ebf4; --dim:#edf0f6;
@@ -153,7 +153,7 @@ a{color:inherit}
 .person.me{border-color:var(--accent)}
 .person .you{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase}
 .role{font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:#1d6fa8;color:#fff;min-width:28px;text-align:center}
-.r-SI{background:#7a4fc4}.r-CP{background:#1f7a5c}.r-FO{background:#1d6fa8}.r-CA{background:#1d6fa8}
+.r-SI{background:#a83f62}.r-CP{background:#1f7a5c}.r-FO{background:#1d6fa8}.r-CA{background:#1d6fa8}
 .crewrow .sub{font-size:12px;color:var(--muted)}
 .duty{scroll-margin-top:76px}
 .dh{display:flex;align-items:baseline;gap:8px}
@@ -210,6 +210,7 @@ textarea{width:100%;min-height:90px;background:var(--inset);border:1px solid var
 .kv span:last-child{text-align:right}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--toast-bg);color:var(--toast-ink);padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px;z-index:99;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.4)}
 input[type=file]{display:none}
+.txt{width:100%;min-height:44px;background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:0 10px;font:16px ui-monospace,Menlo,Consolas,monospace}
 label.check{display:flex;align-items:center;gap:10px;min-height:44px}
 input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(--accent)}
 .pane-empty{padding:56px 24px;text-align:center;color:var(--muted)}
@@ -260,14 +261,19 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 (() => {
 'use strict';
 
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.2.3';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const ROLE = { CA:'Captain', FO:'First Officer', SI:'Simulator Instructor', CP:'Check Pilot' };
 const KINDS = ['flight','deadhead','ground','event'];
+/* simulator event codes name the device, not a time slot */
+const SIM_DEVICES = { SMA: { name: 'SIM A', id: 'TC 1057' }, SMB: { name: 'SIM B', id: 'TC 1147' } };
+const simDev = l => SIM_DEVICES[(l.flight || '').toUpperCase()] || null;
+const simName = l => { const d = simDev(l); return d ? `${d.name} - ${d.id}` : null; };
 
 const S = {
+  sync: { repo: 'FltOpsTool/cjt-schedule-data', token: '', last: null, shas: {}, error: '' },
   nextKey: null, nextDays: new Set(), nextStarted: false, nextMark: null,
   pairings: [], days: [], shots: [],
   me: { name: '', id: '' }, baseTz: 'America/Toronto',
@@ -443,6 +449,7 @@ async function loadAll() {
   for (const m of meta) {
     if (m.k === 'me' && m.v) S.me = m.v;
     if (m.k === 'baseTz' && m.v) S.baseTz = m.v;
+    if (m.k === 'sync' && m.v) S.sync = { ...S.sync, ...m.v, shas: m.v.shas || {} };
   }
 }
 async function saveMeta() {
@@ -510,6 +517,7 @@ async function importData(o, mode) {
   if (mode === 'replace') {
     await dbClear('pairings'); await dbClear('days');
     S.pairings = []; S.days = [];
+    S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
   }
   for (const raw of o.pairings || []) {
     const p = JSON.parse(JSON.stringify(raw));
@@ -566,6 +574,70 @@ async function exportBackup(withShots) {
   const a = h('a', { href: url, download: `cjt-schedule-backup-${keyOf(Date.now(), S.baseTz)}.json` });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+/* ---------- GitHub sync (read-only token, private data repository) ---------- */
+const GH_API = 'https://api.github.com/';
+async function ghGet(url, raw) {
+  if (!url.startsWith(GH_API)) throw new Error('Refusing to send the token to ' + url);
+  const r = await fetch(url, { cache: 'no-store', headers: {
+    Authorization: 'Bearer ' + S.sync.token,
+    Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28' } });
+  if (!r.ok) { const e = new Error('GitHub replied ' + r.status); e.status = r.status; throw e; }
+  return raw ? r.text() : r.json();
+}
+function syncErrText(e) {
+  if (e.status === 401) return 'GitHub rejected the token. It may have expired or been revoked. Create a new one and paste it here.';
+  if (e.status === 403) return 'GitHub refused access. The token may lack permission, or the rate limit was reached.';
+  if (e.status === 404) return 'Repository not found. Check the name, and that the token has access to that repository.';
+  if (e instanceof TypeError) return 'No connection to GitHub. Using the schedule already on this device.';
+  return 'Sync failed: ' + e.message;
+}
+function syncSummary(r) {
+  const n = r.daysAdded + r.daysChanged, parts = [];
+  if (r.added) parts.push(`${r.added} pairing${r.added === 1 ? '' : 's'} added`);
+  if (r.revised.length) parts.push(`${r.revised.length} revised (${r.revised.join(', ')})`);
+  if (n) parts.push(`${n} day${n === 1 ? '' : 's'} updated`);
+  return parts.length ? parts.join(', ') : 'Already up to date';
+}
+let syncing = null;
+function syncNow() {
+  if (syncing) return syncing;
+  syncing = (async () => {
+    const out = { ok: false, files: 0, added: 0, revised: [], daysAdded: 0, daysChanged: 0, bad: [], text: '', status: 0 };
+    try {
+      if (!S.sync.token) throw Object.assign(new Error('No token saved'), { status: 401 });
+      const list = await ghGet(`${GH_API}repos/${S.sync.repo}/contents/`);
+      if (!Array.isArray(list)) throw new Error('Unexpected reply from GitHub');
+      const files = list.filter(f => f && f.type === 'file' && /\.json$/i.test(f.name) && !f.name.startsWith('.')).sort((a, b) => a.name.localeCompare(b.name));
+      for (const f of files) {
+        if (S.sync.shas[f.name] === f.sha) continue;
+        let text;
+        try { text = await ghGet(f.url, true); } catch (e) { if (e.status) throw e; out.bad.push(`${f.name}: could not be read`); continue; }
+        let o; try { o = JSON.parse(text); } catch { out.bad.push(`${f.name}: not valid JSON`); continue; }
+        const errs = validate(o);
+        if (errs.length) { out.bad.push(`${f.name}: ${errs[0]}${errs.length > 1 ? ` (+${errs.length - 1} more)` : ''}`); continue; }
+        const r = await importData(o, 'merge');
+        out.added += r.added; out.revised.push(...r.revised); out.daysAdded += r.daysAdded; out.daysChanged += r.daysChanged; out.files++;
+        S.sync.shas[f.name] = f.sha;
+      }
+      out.ok = true;
+      S.sync.last = new Date().toISOString();
+      S.sync.error = '';
+    } catch (e) { out.text = syncErrText(e); out.status = e.status || 0; S.sync.error = out.text; }
+    try { await dbPut('meta', { k: 'sync', v: S.sync }); } catch { /* ignore */ }
+    return out;
+  })().finally(() => { syncing = null; });
+  return syncing;
+}
+async function autoSync(force) {
+  if (!S.sync.token || S.dbError || navigator.onLine === false) return;
+  if (!force && S.sync.last && Date.now() - Date.parse(S.sync.last) < 10 * MS) return;
+  const r = await syncNow();
+  if (!r.ok) { if ([401, 403, 404].includes(r.status)) toast('Sync: ' + r.text); return; }
+  if (r.added || r.revised.length || r.daysAdded || r.daysChanged) { render(); toast('Schedule updated: ' + syncSummary(r)); }
+  else if (r.bad.length) toast('Sync skipped ' + r.bad[0]);
 }
 
 /* ---------- schedule logic ---------- */
@@ -702,7 +774,7 @@ function legCard(l) {
   const isEv = l.kind === 'event';
   const route = l.from === l.to ? l.from : `${l.from} → ${l.to}`;
   const chips = [];
-  if (l.desc) chips.push(h('span', { class: 'chip', text: l.desc }));
+  if (l.desc || simName(l)) chips.push(h('span', { class: 'chip', text: simName(l) || l.desc }));
   if (l.briefingMin) chips.push(h('span', { class: 'chip', text: `Briefing ${fmtDur(l.briefingMin)} before` }));
   if (l.debriefMin) chips.push(h('span', { class: 'chip', text: `Debrief ${fmtDur(l.debriefMin)} after` }));
   if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
@@ -877,7 +949,7 @@ function agendaRow(p, onOpen) {
     h('div', { class: 'rb' },
       h('div', { class: 'rt' }, isSim(p) ? `${pCode(p)} · ${p.id}` : p.id, p.key === S.nextKey ? h('span', { class: 'tag nowtag', text: pS(p) <= Date.now() ? 'IN PROGRESS' : 'NEXT DUTY' }) : null, (p.tags || []).map(t => h('span', { class: 'tag', text: t }))),
       h('div', { class: 'rs', text: `${sv.date} ${sv.time} → ${sv.key === ev.key ? '' : ev.date + ' '}${ev.time} ${ev.ab}` }),
-      h('div', { class: 'rm', text: routeOf(p) }),
+      h('div', { class: 'rm', text: isSim(p) ? `${[...new Set(legsOf(p).map(l => simName(l) || l.desc || 'Event'))].join(', ')} · ${routeOf(p)}` : routeOf(p) }),
       others.length ? h('div', { class: 'rm', text: `With ${others.join(', ')}` }) : null),
     icon('right', 18));
 }
@@ -1060,6 +1132,49 @@ async function openSettings() {
   const offline = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
   const mb = n => (n / 1048576).toFixed(1) + ' MB';
   const kv = (a, b) => h('div', { class: 'kv' }, h('span', { text: a }), h('span', { text: b }));
+  const syncHost = h('div');
+  const syncStat = h('div', { class: 'result', 'aria-live': 'polite' });
+  const say = (txt, cls) => { syncStat.className = 'result ' + (cls || ''); syncStat.textContent = txt; };
+  const runSync = async () => {
+    say('Syncing...');
+    const r = await syncNow();
+    if (!r.ok) say(r.text, 'bad');
+    else say([syncSummary(r), ...r.bad.map(b => 'Skipped ' + b)].join('\n'), r.bad.length ? 'bad' : 'good');
+    const keep = [syncStat.textContent, syncStat.className];
+    render(); drawSync();
+    syncStat.textContent = keep[0]; syncStat.className = keep[1];
+  };
+  const drawSync = () => {
+    const repoIn = h('input', { type: 'text', class: 'txt', value: S.sync.repo, autocapitalize: 'off', autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Data repository' });
+    const tokIn = h('input', { type: 'password', class: 'txt', autocomplete: 'off', placeholder: S.sync.token ? 'Saved. Paste to replace.' : 'Paste the read-only token', 'aria-label': 'GitHub access token' });
+    const lastV = S.sync.last ? view({ t: S.sync.last, tz: S.baseTz }, 'base') : null;
+    syncHost.replaceChildren(
+      h('div', { class: 'small muted', text: 'Pulls the monthly JSON files from your private data repository on GitHub. Use a read-only token limited to that one repository. The token stays on this device and is never included in backups.' }),
+      h('label', { class: 'field' }, h('span', { text: 'Repository (owner/name)' }), repoIn),
+      h('label', { class: 'field' }, h('span', { text: 'Access token' }), tokIn),
+      h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px' },
+        h('button', { type: 'button', class: 'btn primary', id: 'sync-save', onclick: async () => {
+          const repo = repoIn.value.trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '').replace(/\/$/, '');
+          if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return say('Enter the repository as owner/name.', 'bad');
+          const tok = tokIn.value.trim();
+          if (!tok && !S.sync.token) return say('Paste the access token first.', 'bad');
+          if (/\s/.test(tok)) return say('The token should not contain spaces. Paste it again.', 'bad');
+          if (tok || repo !== S.sync.repo) S.sync.shas = {};
+          if (tok) S.sync.token = tok;
+          S.sync.repo = repo;
+          await dbPut('meta', { k: 'sync', v: S.sync });
+          await runSync();
+        }, text: S.sync.token ? 'Save and sync' : 'Save token and sync' }),
+        S.sync.token ? h('button', { type: 'button', class: 'btn', id: 'sync-now', onclick: runSync, text: 'Sync now' }) : null,
+        S.sync.token ? h('button', { type: 'button', class: 'btn danger', id: 'sync-remove', onclick: async () => {
+          S.sync.token = ''; S.sync.shas = {}; S.sync.error = '';
+          await dbPut('meta', { k: 'sync', v: S.sync }); say('Token removed from this device.', 'good'); drawSync();
+        }, text: 'Remove token' }) : null),
+      kv('Last sync', lastV ? `${lastV.date} ${lastV.time} ${lastV.ab}` : 'Never'),
+      kv('Syncs automatically', S.sync.token ? 'When the app opens' : 'Needs a token'),
+      syncStat);
+  };
+  drawSync();
   sheet.append(
     h('div', { class: 'sheet-head' },
       h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
@@ -1077,8 +1192,11 @@ async function openSettings() {
         seg(MODES(), S.mode, m => { setMode(m); render(); closeSheet(); }),
         h('div', { class: 'small muted', style: 'margin-top:8px', text: `Local: each airport's own time, as VMO shows it. Base: ${S.baseTz}. UTC: Zulu. A second line always shows UTC (or local when UTC is selected).` })),
       h('div', { class: 'card' },
-        h('div', { class: 'sect', style: 'margin-top:0', text: 'Import schedule' }),
-        h('div', { class: 'small muted', text: 'Load the JSON file you received for the month. Importing again updates changed pairings and keeps the earlier version noted.' }),
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Sync from GitHub' }),
+        syncHost),
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Import schedule (manual)' }),
+        h('div', { class: 'small muted', text: 'Load a JSON file by hand if you are not using GitHub sync. Importing again updates changed pairings and keeps the earlier version noted.' }),
         h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn primary', onclick: () => fileIn.click(), text: 'Choose JSON file' }), fileIn),
         h('label', { class: 'field' }, h('span', { text: 'Or paste the JSON' }), paste),
         h('div', { style: 'display:flex;gap:16px;flex-wrap:wrap' },
@@ -1107,6 +1225,7 @@ async function openSettings() {
           if (!confirm('Delete ALL pairings, days and screenshots from this device? This cannot be undone.')) return;
           await dbClear('pairings'); await dbClear('days'); await dbClear('shots');
           S.pairings = []; S.days = []; S.shots = [];
+          S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
           closeSheet(); render(); toast('All data deleted');
         } }, icon('trash', 18), 'Delete all data'))));
 }
@@ -1114,7 +1233,7 @@ async function openSettings() {
 /* ---------- boot ---------- */
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); S.installEvt = e; });
 window.addEventListener('appinstalled', () => { S.installEvt = null; });
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheets.length) render(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (!sheets.length) render(); autoSync(false); } });
 setInterval(() => {
   document.querySelectorAll('.cd[data-st]').forEach(el => { const st = +el.dataset.st; if (st) el.textContent = countdown(st - Date.now()); });
 }, 30000);
@@ -1139,6 +1258,7 @@ async function init() {
     navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching unavailable */ });
   }
   requestPersist();
+  autoSync(true);
 }
 init();
 })();

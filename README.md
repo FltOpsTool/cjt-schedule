@@ -28,6 +28,31 @@ GitHub Pages sites are public, so never commit schedule files, crew names, hotel
 3. Open it from the home screen. Settings (gear) shows "Offline use: Ready" once it is cached.
 4. Test it once with airplane mode on before you rely on it.
 
+## Sync from a private GitHub repository
+
+The app repo is public and holds no schedule data. Your monthly JSON files live in a second, **private** repository, and the app pulls them with a read-only token.
+
+**One-time setup**
+1. Create a private repository named `cjt-schedule-data` (same owner as this repo).
+2. Upload each month's JSON file to its top level, for example `2026-10.json`. Any file ending in `.json` is read. Other files are ignored.
+3. On GitHub create a **fine-grained personal access token**: profile photo, Settings, Developer settings, Personal access tokens, Fine-grained tokens, Generate new token.
+   - Resource owner: the account or organization that owns `cjt-schedule-data`. If it is an organization, the organization may need to allow fine-grained tokens or approve this one.
+   - Repository access: **Only select repositories**, then `cjt-schedule-data`.
+   - Permissions: Repository permissions, **Contents: Read-only**. Nothing else.
+   - Expiration: the longest offered. Set a reminder to make a new one before it runs out.
+   - Menu names can differ slightly from this list, so follow what GitHub shows.
+4. Copy the token (GitHub shows it once). In the app open Settings, Sync from GitHub, check the repository name, paste the token, tap **Save token and sync**.
+5. Repeat step 4 on each device (phone, iPad, family devices). Make one token per person so any one can be revoked on its own.
+
+**Every month**: add the new JSON file to the private repo. The app syncs when it opens, and **Sync now** in Settings does it on demand. Changed pairings are merged and flagged as revised, the same as a manual import.
+
+**Good to know**
+- The token is kept only on the device and is never written into backup files.
+- Anyone holding a token can read everything in the data repository.
+- If a device is lost, delete that token on GitHub. The app then shows a message that GitHub rejected it.
+- Without a connection the app simply uses the schedule already stored on the device.
+- Manual import still works as a fallback.
+
 ## Install on iPhone or iPad
 
 1. Open the app address in **Safari** (not another browser).
