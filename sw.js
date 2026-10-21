@@ -1,6 +1,6 @@
 /* CJT Schedule service worker.
    Caches the app shell only. Schedule data lives in IndexedDB on the phone, never here. */
-const VERSION = '1.7.0';
+const VERSION = '1.7.1';
 const CACHE = 'cjt-schedule-v' + VERSION;
 const SHELL = [
   './',

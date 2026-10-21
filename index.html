@@ -377,7 +377,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
         return [P[1] * Tn[2] - P[2] * Tn[1], P[2] * Tn[0] - P[0] * Tn[2], P[0] * Tn[1] - P[1] * Tn[0]]; };
       const sm = side(0.5); const dz = sm[2] * sgnZ;
       const sg = Math.abs(dz) > 0.05 ? (dz > 0 ? 1 : -1) : (sm[1] >= 0 ? 1 : -1);
-      const amp = Math.min(0.2, 0.17 * d);
+      const amp = Math.min(0.14, 0.08 * d + 0.1 * d * d);
       r.d = d; r.pts = []; r.lift = [];
       for (let i = 0; i <= N; i++) {
         const t = i / N, P = vec(it(t)), Sv = side(t), k = sg * amp * Math.sin(Math.PI * t);
@@ -563,7 +563,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.7.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
