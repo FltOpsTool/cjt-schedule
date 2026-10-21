@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CJT Schedule">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* set the theme before first paint so there is no flash */
+(function(){try{var p=localStorage.getItem('cjt.theme');var d=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+var t=p==='day'?'day':p==='night'?'night':(d?'night':'day');document.documentElement.setAttribute('data-theme',t);
+if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('content','#f3f5f9');document.querySelector('meta[name=color-scheme]').setAttribute('content','light');}}catch(e){}})();
+</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<title>CJT Schedule</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b1220; --surface:#141d30; --surface2:#1b2740; --line:#2a3858; --line2:#1f2b46;
+  --text:#e9eef7; --muted:#93a1bb; --accent:#4fc3dc; --accent-ink:#06222a;
+  --flight:#ffd400; --flight-ink:#14110a; --dead:#ff4fd8; --dead-ink:#14110a; --event:#e0933a; --event-ink:#14110a;
+  --office:#d98a1b; --office-ink:#1b1200;
+  --warn:#ff8a65; --ok:#58d68d;
+  --inset:#0f1729; --head:#101a2c; --dim:#10182a;
+  --ext:#26324a; --dutybar:#516080;
+  --tag-bg:#243556; --tag-ink:#c8d6f0;
+  --next-a:#17304a; --next-b:#142238; --next-line:#2c4a6e;
+  --rest-bg:#151a36; --rest-line:#3b3f7a; --rest-ink:#b6baff;
+  --banner-bg:#3a2216; --banner-line:#7a3d1d; --banner-ink:#ffd2bd;
+  --notice-bg:#2a2a12; --notice-line:#6a6a22; --notice-ink:#f3efb0;
+  --danger-bg:#3b1a1a; --danger-line:#7a2f2f; --danger-ink:#ffb4b4;
+  --pill-bg:#12331f; --pill-line:#1f5a38; --pill-ink:#58d68d;
+  --today-bg:#183150; --toast-bg:#e9eef7; --toast-ink:#0b1220;
+  --backdrop:rgba(4,8,16,.7);
+  --good:#9be8bd; --bad:#ffb4b4;
+}
+:root[data-theme="day"]{
+  color-scheme:light;
+  --bg:#f3f5f9; --surface:#ffffff; --surface2:#eaeef6; --line:#cdd6e6; --line2:#dde4f0;
+  --text:#101828; --muted:#566178; --accent:#0a6f8a; --accent-ink:#ffffff;
+  --flight:#c27d00; --flight-ink:#120b00; --dead:#c4188f; --dead-ink:#ffffff; --event:#b3560a; --event-ink:#ffffff;
+  --office:#f0a53a; --office-ink:#2a1700;
+  --warn:#b4400f; --ok:#15703f;
+  --inset:#f4f6fb; --head:#e6ebf4; --dim:#edf0f6;
+  --ext:#c3cde0; --dutybar:#7a88a8;
+  --tag-bg:#dde5f4; --tag-ink:#243556;
+  --next-a:#e0eff6; --next-b:#d6e6f2; --next-line:#a8c8dc;
+  --rest-bg:#eceefd; --rest-line:#c3c7ee; --rest-ink:#3d42a8;
+  --banner-bg:#fff1e6; --banner-line:#eeb98c; --banner-ink:#7a3d1d;
+  --notice-bg:#fff8d4; --notice-line:#e2d369; --notice-ink:#5a5210;
+  --danger-bg:#fdecec; --danger-line:#e3a0a0; --danger-ink:#a12a2a;
+  --pill-bg:#dff5e8; --pill-line:#9bd7b4; --pill-ink:#15703f;
+  --today-bg:#dcedf5; --toast-bg:#101828; --toast-ink:#f3f5f9;
+  --backdrop:rgba(16,24,40,.45);
+  --good:#15703f; --bad:#a12a2a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+html.noscroll,html.noscroll body{overflow:hidden}
+body{margin:0;min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:inherit;touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+.app{max-width:560px;margin:0 auto;padding:0 12px 48px}
+.top{display:flex;align-items:center;gap:8px;padding:10px 0;position:sticky;top:0;background:var(--bg);z-index:5}
+.top h1{font-size:19px;margin:0;flex:1;letter-spacing:.01em}
+.iconbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
+.iconbtn svg{display:block}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);border:1px solid var(--pill-line);white-space:nowrap}
+.banner{background:var(--banner-bg);border:1px solid var(--banner-line);color:var(--banner-ink);border-radius:12px;padding:10px 12px;margin:4px 0 10px;font-size:14px}
+.next{display:block;width:100%;background:linear-gradient(135deg,var(--next-a),var(--next-b));border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin:2px 0 14px}
+.next-k{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent)}
+.next-t{font-size:18px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums}
+.next-r{font-size:14px;color:var(--muted);margin-top:3px}
+@media (min-width:600px){.next-t{font-size:24px}.next-r{font-size:16px}}
+.monthbar{display:flex;align-items:center;gap:8px;margin:2px 0 8px}
+.monthbar h2{flex:1;margin:0;font-size:20px;text-align:center}
+.todaybtn{font-size:13px;font-weight:700;padding:0 12px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2)}
+.week,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.week{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0}
+.grid{border-top-left-radius:0;border-top-right-radius:0;touch-action:pan-y}
+.week div{background:var(--head);font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:5px 0}
+.cell{position:relative;min-height:68px;background:var(--surface);padding:4px 3px 4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cell.dim{background:var(--dim)}
+.cell.dim .dn{opacity:.55}
+.cell.today{background:var(--today-bg)}
+.cell.nextd{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.sel,.cell.sel.nextd{box-shadow:inset 0 0 0 3px var(--text)}
+.nextmark{position:absolute;top:3px;right:2px;font-size:7.5px;font-weight:900;letter-spacing:.02em;background:var(--accent);color:var(--accent-ink);padding:1px 3px;border-radius:4px}
+@media (min-width:600px){.nextmark{font-size:10px;top:5px;right:5px;padding:2px 5px}}
+.row.isnext{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.row.isnext.sel{box-shadow:0 0 0 3px var(--text)}
+.tag.nowtag{background:var(--accent);color:var(--accent-ink)}
+.dn{font-size:12px;font-weight:700;color:var(--muted);align-self:flex-start;line-height:1.3}
+.cell.today .dn{background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:0 6px}
+.bar{position:relative;height:16px;overflow:hidden}
+.bar i{position:absolute;display:block;min-width:2px}
+.bar .ext{background:var(--ext);top:3px;bottom:3px}
+.bar .duty{background:var(--dutybar);top:1px;bottom:1px}
+.bar .leg{top:0;bottom:0}
+.bar .leg.flight{background:var(--flight)}
+.bar .leg.deadhead,.bar .leg.ground{background:var(--dead)}
+.bar .leg.event{background:var(--event)}
+.lbl{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.chip-day{background:var(--office);color:var(--office-ink);font-size:9px;font-weight:800;letter-spacing:.02em;border-radius:4px;padding:4px 0;text-align:center;margin-top:1px;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.chip-day.other{background:#5b6b8c;color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:10px 2px 14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{width:12px;height:12px;border-radius:3px;display:inline-block}
+.sect{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted);margin:16px 2px 8px;text-transform:uppercase}
+.row{display:grid;grid-template-columns:6px 1fr 18px;align-items:center;gap:10px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px;padding:0 10px 0 0}
+.row.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.row .stripe{align-self:stretch;background:var(--c)}
+.row .rb{padding:10px 0}
+.row .rt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;font-size:16px}
+.row .rs{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums;margin-top:2px}
+.row .rm{font-size:12px;color:var(--muted);margin-top:2px}
+.tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--tag-bg);color:var(--tag-ink)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);margin-top:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-weight:700}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
+.btn[disabled]{opacity:.5}
+/* sheets */
+.sheet{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:20;animation:slide .16s ease-out;overscroll-behavior:contain}
+@keyframes slide{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.panel{min-height:100%;background:var(--bg)}
+.sheet-head{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top))}
+.sheet-title{flex:1;font-weight:800;font-size:17px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-body{max-width:560px;margin:0 auto;padding:12px 12px calc(80px + env(safe-area-inset-bottom))}
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:2px;flex:none}
+.seg button{padding:9px 11px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);text-align:center}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.pid{font-size:28px;font-weight:900;letter-spacing:.02em}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:var(--surface2);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.range{font-size:15px;font-variant-numeric:tabular-nums;margin-top:6px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.notice{background:var(--notice-bg);border:1px solid var(--notice-line);color:var(--notice-ink);border-radius:10px;padding:8px 10px;font-size:13px;margin-top:10px}
+.person{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 4px;font-size:14px;margin:0 6px 6px 0}
+.person.me{border-color:var(--accent)}
+.person .you{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase}
+.role{font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:#1d6fa8;color:#fff;min-width:28px;text-align:center}
+.r-SI{background:#7a4fc4}.r-CP{background:#1f7a5c}.r-FO{background:#1d6fa8}.r-CA{background:#1d6fa8}
+.crewrow .sub{font-size:12px;color:var(--muted)}
+.duty{scroll-margin-top:76px}
+.dh{display:flex;align-items:baseline;gap:8px}
+.dh h3{margin:0;font-size:13px;letter-spacing:.1em;font-weight:900;color:var(--accent)}
+.dh span{font-size:13px;color:var(--muted)}
+.tbs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.tb{background:var(--surface2);border-radius:10px;padding:8px 10px}
+.tb-l{font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--muted);text-transform:uppercase}
+.t-big{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.t-big .ab{font-size:13px;font-weight:700;color:var(--muted)}
+.t-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--inset);border:1px solid var(--line);min-height:28px}
+button.chip{min-height:40px;padding:0 14px}
+.leg-card{display:grid;grid-template-columns:7px 1fr;border-radius:12px;overflow:hidden;background:var(--surface2);margin:10px 0 0}
+.leg-card .stripe{background:var(--c)}
+.lm{padding:10px 12px}
+.lt{display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;font-weight:900;letter-spacing:.05em;padding:2px 7px;border-radius:6px;background:var(--c);color:var(--ink)}
+.k-flight{--c:var(--flight);--ink:var(--flight-ink)}
+.k-dead{--c:var(--dead);--ink:var(--dead-ink)}
+.k-event{--c:var(--event);--ink:var(--event-ink)}
+.flt{font-weight:800;font-size:16px}
+.blk{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums}
+.route{font-size:22px;font-weight:900;letter-spacing:.03em;margin:4px 0 6px}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gap{font-size:12px;color:var(--muted);text-align:center;padding:6px 0 0}
+.rest{border-color:var(--rest-line);background:var(--rest-bg)}
+.rest .rh{display:flex;align-items:center;gap:8px;font-weight:900;font-size:13px;letter-spacing:.1em;color:var(--rest-ink)}
+.rest .rd{font-size:22px;font-weight:900;margin:2px 0 4px;font-variant-numeric:tabular-nums}
+.rest .hn{font-weight:700}
+.call{display:flex;align-items:center;gap:10px;min-height:44px;margin-top:8px;padding:0 12px;border-radius:12px;background:var(--inset);border:1px solid var(--line);text-decoration:none}
+.call small{display:block;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.call .num{font-weight:800;font-variant-numeric:tabular-nums}
+.warn{color:var(--warn);font-size:12px;margin-top:4px}
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.shots button{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.shots img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.sheet.viewer{background:#000;z-index:40}
+.viewer .bar2{position:sticky;top:0;display:flex;justify-content:space-between;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));background:rgba(0,0,0,.7);z-index:2}
+.viewer .btn{background:#222;border-color:#444;color:#fff}
+.viewer .btn.danger{background:#3b1a1a;border-color:#7a2f2f;color:#ffb4b4}
+.viewer img{display:block;width:100%;height:auto}
+.viewer img.zoom{width:240%;max-width:none}
+.field{display:block;margin:10px 0}
+.field > span{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:700}
+textarea{width:100%;min-height:90px;background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:10px;font:16px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.result{font-size:14px;margin-top:10px;white-space:pre-wrap}
+.result.bad{color:var(--bad)}
+.result.good{color:var(--good)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:14px}
+.kv:last-child{border:0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{text-align:right}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--toast-bg);color:var(--toast-ink);padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px;z-index:99;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+input[type=file]{display:none}
+label.check{display:flex;align-items:center;gap:10px;min-height:44px}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(--accent)}
+.pane-empty{padding:56px 24px;text-align:center;color:var(--muted)}
+
+/* iPad portrait and small tablets */
+@media (min-width:600px){
+  .app{max-width:760px;padding:0 20px 56px}
+  .top h1{font-size:22px}
+  .monthbar h2{font-size:24px}
+  .cell{min-height:100px;padding:6px 6px}
+  .dn{font-size:14px}
+  .bar{height:22px}
+  .lbl{font-size:12px}
+  .chip-day{font-size:11px;padding:6px 0}
+  .week div{font-size:12px;padding:7px 0}
+  .legend{font-size:13px}
+  .sheet{background:var(--backdrop)}
+  .sheet.viewer{background:#000}
+  .panel{max-width:720px;margin:0 auto;box-shadow:0 0 0 1px var(--line),0 12px 48px rgba(0,0,0,.35)}
+  .sheet-body{padding:16px 20px 90px;max-width:none}
+  .pid{font-size:32px}
+  .t-big{font-size:24px}
+  .route{font-size:26px}
+  .row .rt{font-size:18px}
+  .row .rs{font-size:14px}
+  .row .rm{font-size:13px}
+}
+/* iPad landscape, large tablets, desktop: calendar left, details right */
+@media (min-width:900px){
+  .app.wide{max-width:1500px;padding:0 24px 0}
+  .layout{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(440px,47%) minmax(0,1fr);gap:24px;align-items:start}
+  .left{min-width:0;padding-bottom:40px}
+  .pane{position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:contain;border-left:1px solid var(--line)}
+  .pane .panel{max-width:none;margin:0;box-shadow:none;background:transparent;min-height:0}
+  .pane .sheet-head{padding-top:calc(12px + env(safe-area-inset-top));background:var(--bg)}
+  .pane .sheet-body{padding:12px 12px 48px 18px}
+  .cell{min-height:92px}
+}
+
+.viewer .panel{max-width:none;margin:0;box-shadow:none;background:#000}
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px">CJT Schedule needs JavaScript.</p></noscript>
+<div class="app" id="app"></div>
+
+<script>
+(() => {
+'use strict';
+
+const APP_VERSION = '1.1.1';
+const MS = 60000;
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const ROLE = { CA:'Captain', FO:'First Officer', SI:'Simulator Instructor', CP:'Check Pilot' };
+const KINDS = ['flight','deadhead','ground','event'];
+
+const S = {
+  nextKey: null, nextDays: new Set(), nextStarted: false, nextMark: null,
+  pairings: [], days: [], shots: [],
+  me: { name: '', id: '' }, baseTz: 'America/Toronto',
+  mode: 'local', theme: 'auto', sel: null, selDay: null, autoDone: false, paneClose: null, month: { y: 2026, m: 9 },
+  db: null, dbError: null, memId: 0, persisted: null, installEvt: null
+};
+
+/* ---------- tiny DOM helper (no innerHTML for data) ---------- */
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const ICONS = {
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  left: '<polyline points="15 18 9 12 15 6"/>',
+  right: '<polyline points="9 18 15 12 9 6"/>',
+  close: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
+};
+function icon(name, size = 22) {
+  const s = h('span', { 'aria-hidden': 'true', style: 'display:inline-flex' });
+  s.innerHTML = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+  return s;
+}
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = h('div', { class: 'toast', role: 'status', text: msg });
+  document.body.append(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.remove(), 2400);
+}
+
+/* ---------- theme (Auto follows the device) ---------- */
+const THEMES = [['auto', 'Auto'], ['day', 'Day'], ['night', 'Night']];
+const darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : { matches: true };
+const wideMQ = window.matchMedia ? window.matchMedia('(min-width: 900px)') : { matches: false };
+const isWide = () => wideMQ.matches;
+function effTheme() { return S.theme === 'day' ? 'day' : S.theme === 'night' ? 'night' : (darkMQ.matches ? 'night' : 'day'); }
+function applyTheme() {
+  const t = effTheme();
+  document.documentElement.setAttribute('data-theme', t);
+  const set = (n, v) => { const m = document.querySelector(`meta[name="${n}"]`); if (m) m.setAttribute('content', v); };
+  set('theme-color', t === 'day' ? '#f3f5f9' : '#0b1220');
+  set('color-scheme', t === 'day' ? 'light' : 'dark');
+}
+function setTheme(t) {
+  S.theme = t;
+  try { localStorage.setItem('cjt.theme', t); } catch { /* ignore */ }
+  applyTheme();
+}
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const STANDALONE = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+
+/* ---------- time helpers ---------- */
+const pad = n => String(n).padStart(2, '0');
+const fmtCache = new Map(), abCache = new Map();
+function dtf(tz) {
+  let f = fmtCache.get(tz);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+    fmtCache.set(tz, f);
+  }
+  return f;
+}
+function parts(ms, tz) {
+  const o = {};
+  for (const p of dtf(tz).formatToParts(ms)) if (p.type !== 'literal') o[p.type] = +p.value;
+  return { y: o.year, mo: o.month, d: o.day, h: o.hour === 24 ? 0 : o.hour, mi: o.minute, s: o.second };
+}
+function shortAbbr(ms, tz) {
+  if (tz === 'UTC') return 'UTC';
+  let f = abCache.get(tz);
+  if (!f) { f = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' }); abCache.set(tz, f); }
+  const p = f.formatToParts(ms).find(x => x.type === 'timeZoneName');
+  return p ? p.value : tz;
+}
+function tzOffsetMin(ms, tz) {
+  const p = parts(ms, tz);
+  return Math.round((Date.UTC(p.y, p.mo - 1, p.d, p.h, p.mi, p.s) - ms) / MS);
+}
+function dayStartMs(key, tz) {
+  const [y, m, d] = key.split('-').map(Number);
+  const guess = Date.UTC(y, m - 1, d);
+  const first = guess - tzOffsetMin(guess, tz) * MS;
+  return guess - tzOffsetMin(first, tz) * MS;
+}
+function keyOf(ms, tz) { const p = parts(ms, tz); return `${p.y}-${pad(p.mo)}-${pad(p.d)}`; }
+function addDays(key, n) {
+  const [y, m, d] = key.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + n));
+  return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`;
+}
+function dowOf(key) { const [y, m, d] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); }
+function labelKey(key) { const [, m, d] = key.split('-').map(Number); return `${DOW[dowOf(key)]} ${MON[m - 1]} ${d}`; }
+function fmtDur(min) {
+  const d = Math.floor(min / 1440), r = min % 1440, hh = Math.floor(r / 60), mm = r % 60;
+  const t = `${hh}:${pad(mm)}`;
+  return d ? `${d} day${d > 1 ? 's' : ''} ${t}` : t;
+}
+/* a time point {t, tz, abbr} shown in the chosen mode */
+function view(pt, mode) {
+  const ms = Date.parse(pt.t);
+  let tz, ab;
+  if (mode === 'utc') { tz = 'UTC'; ab = 'UTC'; }
+  else if (mode === 'base') { tz = S.baseTz; ab = shortAbbr(ms, tz); }
+  else { tz = pt.tz || S.baseTz; ab = pt.abbr || shortAbbr(ms, tz); }
+  const p = parts(ms, tz);
+  const key = `${p.y}-${pad(p.mo)}-${pad(p.d)}`;
+  return { ms, tz, ab, key, time: `${pad(p.h)}:${pad(p.mi)}`, date: labelKey(key) };
+}
+function secondary(pt, mode, v) {
+  const o = mode === 'utc' ? view(pt, 'local') : view(pt, 'utc');
+  return `${o.time}${o.ab === 'UTC' ? 'Z' : ' ' + o.ab}${o.date !== v.date ? ` (${o.date.slice(4)})` : ''}`;
+}
+const pS = p => Date.parse(p.start), pE = p => Date.parse(p.end);
+const isMe = c => S.me.name && c.name && c.name.toLowerCase() === S.me.name.toLowerCase();
+
+/* ---------- storage ---------- */
+function openDB() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('IndexedDB not available'));
+    const r = indexedDB.open('cjt-schedule', 1);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      db.createObjectStore('pairings', { keyPath: 'key' });
+      db.createObjectStore('days', { keyPath: 'date' });
+      db.createObjectStore('shots', { keyPath: 'id', autoIncrement: true }).createIndex('pk', 'pairingKey');
+      db.createObjectStore('meta', { keyPath: 'k' });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.onblocked = () => rej(new Error('Database blocked'));
+  });
+}
+function dbDo(store, mode, fn) {
+  return new Promise((res, rej) => {
+    if (!S.db) return res(undefined);
+    const t = S.db.transaction(store, mode);
+    const r = fn(t.objectStore(store));
+    let val;
+    if (r) r.onsuccess = () => { val = r.result; };
+    t.oncomplete = () => res(val);
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error || new Error('Storage transaction aborted'));
+  });
+}
+const dbPut = (s, v) => dbDo(s, 'readwrite', o => o.put(v));
+const dbDel = (s, k) => dbDo(s, 'readwrite', o => o.delete(k));
+const dbClear = s => dbDo(s, 'readwrite', o => o.clear());
+const dbAll = s => dbDo(s, 'readonly', o => o.getAll());
+async function loadAll() {
+  S.pairings = (await dbAll('pairings')) || [];
+  S.days = (await dbAll('days')) || [];
+  S.shots = (await dbAll('shots')) || [];
+  const meta = (await dbAll('meta')) || [];
+  for (const m of meta) {
+    if (m.k === 'me' && m.v) S.me = m.v;
+    if (m.k === 'baseTz' && m.v) S.baseTz = m.v;
+  }
+}
+async function saveMeta() {
+  await dbPut('meta', { k: 'me', v: S.me });
+  await dbPut('meta', { k: 'baseTz', v: S.baseTz });
+}
+async function requestPersist() {
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      S.persisted = (await navigator.storage.persisted()) || (await navigator.storage.persist());
+    }
+  } catch { /* ignore */ }
+}
+
+/* ---------- import / export ---------- */
+function validTz(tz) { try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch { return false; } }
+function validPoint(pt, where, errs) {
+  if (!pt || typeof pt !== 'object') { errs.push(`${where}: missing time`); return false; }
+  if (typeof pt.t !== 'string' || Number.isNaN(Date.parse(pt.t))) { errs.push(`${where}: bad time "${pt.t}"`); return false; }
+  if (pt.tz && !validTz(pt.tz)) { errs.push(`${where}: unknown time zone "${pt.tz}"`); return false; }
+  return true;
+}
+function validate(o) {
+  const errs = [];
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return ['Not a schedule file (expected a JSON object).'];
+  if (o.format !== 'cjt-schedule') errs.push('This is not a CJT schedule file (format field missing or different).');
+  if (o.version !== 1) errs.push(`Unsupported file version: ${o.version}`);
+  if (o.baseTz && !validTz(o.baseTz)) errs.push(`Unknown base time zone "${o.baseTz}"`);
+  if (o.pairings != null && !Array.isArray(o.pairings)) errs.push('"pairings" must be a list.');
+  if (o.days != null && !Array.isArray(o.days)) errs.push('"days" must be a list.');
+  (Array.isArray(o.pairings) ? o.pairings : []).forEach((p, i) => {
+    const w = `Pairing ${p && p.id ? p.id : '#' + (i + 1)}`;
+    if (!p || typeof p.id !== 'string' || !p.id) { errs.push(`${w}: missing id`); return; }
+    if (typeof p.start !== 'string' || Number.isNaN(Date.parse(p.start))) errs.push(`${w}: bad start`);
+    if (typeof p.end !== 'string' || Number.isNaN(Date.parse(p.end))) errs.push(`${w}: bad end`);
+    if (!Array.isArray(p.duties) || !p.duties.length) { errs.push(`${w}: no duties`); return; }
+    p.duties.forEach((d, j) => {
+      const dw = `${w}, duty ${j + 1}`;
+      validPoint(d.start, `${dw} report`, errs); validPoint(d.end, `${dw} release`, errs);
+      if (!Array.isArray(d.legs)) { errs.push(`${dw}: legs must be a list`); return; }
+      d.legs.forEach((l, k) => {
+        const lw = `${dw}, leg ${k + 1}`;
+        if (!KINDS.includes(l.kind)) errs.push(`${lw}: unknown kind "${l.kind}"`);
+        if (!l.from || !l.to) errs.push(`${lw}: missing airport`);
+        const a = validPoint(l.out, `${lw} out`, errs), b = validPoint(l.in, `${lw} in`, errs);
+        if (a && b && Date.parse(l.in.t) < Date.parse(l.out.t)) errs.push(`${lw}: arrives before it departs`);
+      });
+    });
+  });
+  (Array.isArray(o.days) ? o.days : []).forEach((d, i) => {
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d.date || '') || typeof d.type !== 'string') errs.push(`Day entry #${i + 1}: needs date (YYYY-MM-DD) and type`);
+    else for (const f of ['start', 'end']) if (d[f] != null && !/^\d{2}:\d{2}$/.test(d[f])) errs.push(`Day ${d.date}: ${f} must be HH:MM`);
+  });
+  return errs;
+}
+function canon(p) {
+  const c = JSON.parse(JSON.stringify(p));
+  for (const k of ['generatedUtc', 'prev', 'revisedAt', 'importedAt', 'key']) delete c[k];
+  return JSON.stringify(c);
+}
+function overlaps(a, b) { return pS(a) < pE(b) && pS(b) < pE(a); }
+async function importData(o, mode) {
+  const res = { added: 0, revised: [], same: 0, daysAdded: 0, daysChanged: 0, shots: 0, replaced: mode === 'replace' };
+  const now = new Date().toISOString();
+  if (mode === 'replace') {
+    await dbClear('pairings'); await dbClear('days');
+    S.pairings = []; S.days = [];
+  }
+  for (const raw of o.pairings || []) {
+    const p = JSON.parse(JSON.stringify(raw));
+    p.key = p.key || `${p.id}@${p.start}`;
+    let ex = S.pairings.find(x => x.key === p.key) || S.pairings.find(x => x.id === p.id && overlaps(x, p));
+    if (!ex) {
+      p.importedAt = p.importedAt || now;
+      S.pairings.push(p); await dbPut('pairings', p); res.added++;
+    } else if (canon(ex) !== canon(p)) {
+      const snap = JSON.parse(JSON.stringify(ex)); delete snap.prev;
+      p.prev = { snapshot: snap, replacedAt: now };
+      p.revisedAt = now; p.importedAt = ex.importedAt || now;
+      if (ex.key !== p.key) {
+        await dbDel('pairings', ex.key);
+        S.shots.filter(s => s.pairingKey === ex.key).forEach(s => { s.pairingKey = p.key; dbPut('shots', s); });
+      }
+      S.pairings = S.pairings.filter(x => x !== ex); S.pairings.push(p);
+      await dbPut('pairings', p); res.revised.push(p.id);
+    } else {
+      res.same++;
+      if ((p.generatedUtc || '') > (ex.generatedUtc || '')) { ex.generatedUtc = p.generatedUtc; await dbPut('pairings', ex); }
+    }
+  }
+  for (const d of o.days || []) {
+    const ex = S.days.find(x => x.date === d.date);
+    if (!ex) { S.days.push(d); await dbPut('days', d); res.daysAdded++; }
+    else if (ex.type !== d.type || ex.label !== d.label || ex.start !== d.start || ex.end !== d.end) { Object.assign(ex, d); await dbPut('days', ex); res.daysChanged++; }
+  }
+  for (const s of o.screenshots || []) {
+    try {
+      const blob = await (await fetch(s.dataUrl)).blob();
+      if (S.shots.some(x => x.pairingKey === s.pairingKey && x.name === s.name && x.added === s.added)) continue;
+      const rec = { pairingKey: s.pairingKey, name: s.name, added: s.added, blob };
+      const id = await dbDo('shots', 'readwrite', st => st.add(rec));
+      rec.id = id ?? ++S.memId; S.shots.push(rec); res.shots++;
+    } catch { /* skip bad image */ }
+  }
+  if (o.me && o.me.name) S.me = o.me;
+  if (o.baseTz) S.baseTz = o.baseTz;
+  await saveMeta();
+  return res;
+}
+function blobToDataURL(b) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+}
+async function exportBackup(withShots) {
+  const out = { format: 'cjt-schedule', version: 1, exportedAt: new Date().toISOString(), me: S.me, baseTz: S.baseTz, pairings: S.pairings, days: S.days };
+  if (withShots) {
+    out.screenshots = [];
+    for (const s of S.shots) out.screenshots.push({ pairingKey: s.pairingKey, name: s.name, added: s.added, dataUrl: await blobToDataURL(s.blob) });
+  }
+  const blob = new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { href: url, download: `cjt-schedule-backup-${keyOf(Date.now(), S.baseTz)}.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+/* ---------- schedule logic ---------- */
+function legsOf(p) { return p.duties.flatMap(d => d.legs); }
+function isSim(p) { const l = legsOf(p); return l.length > 0 && l.every(x => x.kind === 'event'); }
+function pCode(p) {
+  if (isSim(p)) return [...new Set(legsOf(p).map(l => l.flight))].join('/');
+  return p.id;
+}
+function routeOf(p) {
+  const r = [];
+  for (const l of legsOf(p)) {
+    if (!r.length) r.push(l.from);
+    if (r[r.length - 1] !== l.from) r.push(l.from);
+    if (r[r.length - 1] !== l.to) r.push(l.to);
+  }
+  return r.join(' › ');
+}
+function otherCrew(p) {
+  const s = new Set();
+  [...(p.crew || []), ...p.duties.flatMap(d => d.crew || [])].forEach(c => { if (!isMe(c)) s.add(c.name); });
+  return [...s];
+}
+function crewAll(p) {
+  const m = new Map();
+  const add = (c, duty) => {
+    const k = c.name.toLowerCase();
+    let e = m.get(k);
+    if (!e) { e = { role: c.role, name: c.name, id: c.id, duties: new Set() }; m.set(k, e); }
+    if (c.id && !e.id) e.id = c.id;
+    if (duty != null) e.duties.add(duty);
+  };
+  (p.crew || []).forEach(c => add(c));
+  p.duties.forEach((d, i) => (d.crew || []).forEach(c => add(c, i + 1)));
+  return [...m.values()];
+}
+function totalFlight(p) { return p.duties.reduce((a, d) => a + (d.flightMinutes || 0), 0); }
+function kindColor(p) {
+  if (isSim(p)) return 'var(--event)';
+  return legsOf(p).some(l => l.kind === 'flight') ? 'var(--flight)' : 'var(--dead)';
+}
+function dayBounds(key) { return [dayStartMs(key, S.baseTz), dayStartMs(addDays(key, 1), S.baseTz)]; }
+function hasDay(p, key) { const [a, b] = dayBounds(key); return pS(p) < b && pE(p) > a; }
+function segs(p, key) {
+  const [ds, de] = dayBounds(key);
+  const cl = (a, b) => {
+    const s = Math.max(a, ds), e = Math.min(b, de);
+    return s < e ? { l: (s - ds) / (de - ds) * 100, w: (e - s) / (de - ds) * 100 } : null;
+  };
+  return {
+    ext: cl(pS(p), pE(p)),
+    duties: p.duties.map(d => cl(Date.parse(d.start.t), Date.parse(d.end.t))).filter(Boolean),
+    legs: legsOf(p).map(l => { const g = cl(Date.parse(l.out.t), Date.parse(l.in.t)); return g && { ...g, kind: l.kind }; }).filter(Boolean)
+  };
+}
+function datesOf(startMs, endMs) {
+  const out = []; let k = keyOf(startMs, S.baseTz); const last = keyOf(Math.max(startMs, endMs - 1), S.baseTz);
+  for (let i = 0; i < 60 && k <= last; i++) { out.push(k); k = addDays(k, 1); }
+  return out;
+}
+
+/* ---------- sheets (Android back button closes them) ---------- */
+const sheets = [];
+function openSheet(cls, onClose) {
+  const el = h('div', { class: 'sheet ' + (cls || ''), role: 'dialog', 'aria-modal': 'true', onclick: e => { if (e.target === el) closeSheet(); } });
+  const panel = h('div', { class: 'panel' });
+  el.append(panel);
+  document.body.append(el);
+  document.documentElement.classList.add('noscroll');
+  sheets.push({ el, onClose });
+  history.pushState({ sheet: sheets.length }, '');
+  return panel;
+}
+function closeSheet() { history.back(); }
+window.addEventListener('popstate', () => {
+  const depth = (history.state && history.state.sheet) || 0;
+  while (sheets.length > depth) { const s = sheets.pop(); if (s.onClose) s.onClose(); s.el.remove(); }
+  if (!sheets.length) document.documentElement.classList.remove('noscroll');
+});
+/* the right-hand pane used on wide screens instead of full-screen sheets */
+const paneEl = h('aside', { class: 'pane', 'aria-label': 'Details' });
+function runPaneClose() { const f = S.paneClose; S.paneClose = null; if (f) f(); }
+function markSel() {
+  document.querySelectorAll('.cell[data-key]').forEach(c => c.classList.toggle('sel', !!S.selDay && c.dataset.key === S.selDay));
+  document.querySelectorAll('.row[data-pk]').forEach(r => r.classList.toggle('sel', !!S.sel && r.dataset.pk === S.sel));
+}
+function clearPane() {
+  runPaneClose();
+  S.sel = null; S.selDay = null;
+  paneEl.replaceChildren(h('div', { class: 'pane-empty', text: 'Select a day or a pairing to see its details here.' }));
+  paneEl.scrollTop = 0;
+  markSel();
+}
+function takePane(onClose) {
+  runPaneClose();
+  S.paneClose = onClose || null;
+  const panel = h('div', { class: 'panel' });
+  paneEl.replaceChildren(panel);
+  paneEl.scrollTop = 0;
+  return panel;
+}
+function seg(opts, val, on, label) {
+  return h('div', { class: 'seg', role: 'group', 'aria-label': label || 'Time display' },
+    opts.map(([v, l]) => h('button', { type: 'button', 'aria-pressed': String(v === val), onclick: () => on(v), text: l })));
+}
+function setMode(m) {
+  S.mode = m;
+  try { localStorage.setItem('cjt.mode', m); } catch { /* ignore */ }
+}
+const MODES = () => [['local', 'Local'], ['base', 'Base'], ['utc', 'UTC']];
+
+/* ---------- pairing detail ---------- */
+function timeBlock(label, pt) {
+  const v = view(pt, S.mode);
+  return h('div', { class: 'tb' },
+    h('div', { class: 'tb-l', text: label }),
+    h('div', { class: 't-big' }, v.time, ' ', h('span', { class: 'ab', text: v.ab })),
+    h('div', { class: 't-sub', text: v.date }),
+    h('div', { class: 't-sub', text: secondary(pt, S.mode, v) }));
+}
+function badgeOf(l) {
+  if (l.kind === 'flight') return 'FLIGHT';
+  if (l.kind === 'deadhead') return 'DEADHEAD';
+  if (l.kind === 'ground') return /limo/i.test(l.note || '') ? 'LIMO' : 'GROUND';
+  return /sim/i.test(l.desc || '') ? 'SIM' : 'EVENT';
+}
+function colorOf(l) { return l.kind === 'flight' ? 'var(--flight)' : l.kind === 'event' ? 'var(--event)' : 'var(--dead)'; }
+function copyText(t) {
+  const done = () => toast(`Copied ${t}`);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => toast(t));
+  else toast(t);
+}
+function legCard(l) {
+  const isEv = l.kind === 'event';
+  const route = l.from === l.to ? l.from : `${l.from} → ${l.to}`;
+  const chips = [];
+  if (l.desc) chips.push(h('span', { class: 'chip', text: l.desc }));
+  if (l.briefingMin) chips.push(h('span', { class: 'chip', text: `Briefing ${fmtDur(l.briefingMin)} before` }));
+  if (l.debriefMin) chips.push(h('span', { class: 'chip', text: `Debrief ${fmtDur(l.debriefMin)} after` }));
+  if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
+  if (l.locator) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
+  if (l.note) chips.push(h('span', { class: 'chip', text: l.note }));
+  return h('div', { class: 'leg-card ' + (l.kind === 'flight' ? 'k-flight' : l.kind === 'event' ? 'k-event' : 'k-dead') },
+    h('div', { class: 'stripe' }),
+    h('div', { class: 'lm' },
+      h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
+      h('div', { class: 'route', text: route }),
+      h('div', { class: 'times' }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
+      chips.length ? h('div', { class: 'chips' }, chips) : null));
+}
+function telHref(n) { return 'tel:' + n.replace(/[^\d+]/g, ''); }
+function callRow(label, name, num) {
+  return h('a', { class: 'call', href: telHref(num), 'aria-label': `Call ${name} ${num}` },
+    icon('phone', 20),
+    h('span', {}, h('small', { text: `${label}: ${name}` }), h('span', { class: 'num', text: num })));
+}
+function restCard(r, duty, next) {
+  const gapMin = next ? Math.round((Date.parse(next.start.t) - Date.parse(duty.end.t)) / MS) : null;
+  const days = datesOf(Date.parse(duty.end.t), next ? Date.parse(next.start.t) : Date.parse(duty.end.t) + 1);
+  const hotel = r.hotel || {}, tr = r.transport || {};
+  return h('div', { class: 'card rest', 'data-days': days.join(' ') },
+    h('div', { class: 'rh' }, icon('moon', 18), `REST · ${r.station || ''}`),
+    h('div', { class: 'rd', text: fmtDur(r.minutes) }),
+    gapMin != null && gapMin !== r.minutes ? h('div', { class: 'warn', text: `Check: release to next report is ${fmtDur(gapMin)}.` }) : null,
+    hotel.name ? h('div', { class: 'hn', text: hotel.name }) : null,
+    hotel.phone ? callRow('Hotel', hotel.name || 'front desk', hotel.phone) : null,
+    tr.phone || tr.name ? h('div', { class: 'small muted', style: 'margin-top:10px', text: `Ground transportation${tr.station ? ' in ' + tr.station : ''}` }) : null,
+    tr.phone ? callRow('Transport', tr.name || 'transport', tr.phone) : (tr.name ? h('div', { class: 'hn', text: tr.name }) : null));
+}
+function dutyCard(p, d, i) {
+  const days = datesOf(Date.parse(d.start.t), Date.parse(d.end.t));
+  const sv = view(d.start, S.mode);
+  const kids = [
+    h('div', { class: 'dh' }, h('h3', { text: `DUTY ${i + 1} OF ${p.duties.length}` }), h('span', { text: sv.date })),
+    h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation || ''}`.trim(), d.start), timeBlock(`Release ${d.endStation || ''}`.trim(), d.end)),
+    h('div', { class: 'chips', style: 'margin-top:0' },
+      h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
+      d.flightMinutes != null ? h('span', { class: 'chip', text: `Flight time ${fmtDur(d.flightMinutes)}` }) : null)
+  ];
+  if (d.crew && d.crew.length) {
+    kids.push(h('div', { style: 'margin-top:12px' }, d.crew.map(c =>
+      h('span', { class: 'person' + (isMe(c) ? ' me' : '') }, h('span', { class: `role r-${c.role}`, title: ROLE[c.role] || c.role, text: c.role }), c.name, isMe(c) ? h('span', { class: 'you', text: 'you' }) : null))));
+  }
+  d.legs.forEach((l, k) => {
+    const prev = d.legs[k - 1];
+    if (prev && prev.to === l.from) {
+      const g = Math.round((Date.parse(l.out.t) - Date.parse(prev.in.t)) / MS);
+      if (g > 0) kids.push(h('div', { class: 'gap', text: `Ground time ${fmtDur(g)} at ${prev.to}` }));
+    }
+    kids.push(legCard(l));
+  });
+  return h('div', { class: 'card duty', 'data-days': days.join(' ') }, kids);
+}
+function openPairing(key, scrollDay) {
+  const urls = [];
+  const wide = isWide();
+  const onClose = () => urls.splice(0).forEach(u => URL.revokeObjectURL(u));
+  let sheet, scroller;
+  if (wide) { sheet = takePane(onClose); scroller = paneEl; S.sel = key; S.selDay = scrollDay || null; markSel(); }
+  else { sheet = openSheet('', onClose); scroller = sheet.parentElement; }
+  const leave = () => (wide ? clearPane() : closeSheet());
+  const draw = () => {
+    if (wide && S.sel !== key) return;
+    const p = S.pairings.find(x => x.key === key);
+    if (!p) { leave(); return; }
+    const top = scroller.scrollTop;
+    urls.splice(0).forEach(u => URL.revokeObjectURL(u));
+    const first = p.duties[0], last = p.duties[p.duties.length - 1];
+    const sv = view(first.start, S.mode), ev = view(last.end, S.mode);
+    const gen = view({ t: p.generatedUtc || p.importedAt || new Date().toISOString(), tz: 'UTC' }, 'utc');
+    const flight = totalFlight(p);
+    const body = [];
+    const head = h('div', { class: 'card' },
+      h('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap' },
+        h('div', { class: 'pid', text: isSim(p) ? `${pCode(p)} · ${p.id}` : p.id }),
+        (p.tags || []).map(t => h('span', { class: 'tag', text: t }))),
+      h('div', { class: 'range' },
+        h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time} ${sv.ab}`),
+        h('div', {}, h('span', { class: 'muted', text: 'End   ' }), `${ev.date} ${ev.time} ${ev.ab}`)),
+      h('div', { class: 'stats' },
+        h('div', { class: 'stat' }, h('span', { text: 'Pairing duration' }), h('b', { text: fmtDur(p.durationMinutes) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Flight time' }), h('b', { text: flight ? fmtDur(flight) : '–' })),
+        h('div', { class: 'stat' }, h('span', { text: 'Duties' }), h('b', { text: String(p.duties.length) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Layovers' }), h('b', { text: String(p.duties.filter(d => d.rest).length) }))),
+      h('div', { class: 'small muted', style: 'margin-top:10px', text: `Schedule generated ${gen.date} ${gen.time} UTC` }),
+      p.prev ? h('div', { class: 'notice', text: `Revised when imported ${labelKey(keyOf(Date.parse(p.revisedAt), S.baseTz))}. The earlier version was generated ${(() => { const g = view({ t: p.prev.snapshot.generatedUtc || p.prev.replacedAt, tz: 'UTC' }, 'utc'); return `${g.date} ${g.time} UTC`; })()}.` }) : null);
+    body.push(head);
+    const crew = crewAll(p);
+    if (crew.length) {
+      body.push(h('div', { class: 'card crewrow' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Crew' }),
+        crew.map(c => h('div', { style: 'margin-bottom:6px' },
+          h('span', { class: 'person' + (isMe(c) ? ' me' : '') }, h('span', { class: `role r-${c.role}`, title: ROLE[c.role] || c.role, text: c.role }), c.name, isMe(c) ? h('span', { class: 'you', text: 'you' }) : null),
+          h('span', { class: 'sub', text: [ROLE[c.role] && ROLE[c.role] !== c.role ? ROLE[c.role] : null, c.id ? `#${c.id}` : null, c.duties.size ? `Duty ${[...c.duties].join(', ')}` : null].filter(Boolean).join(' · ') })))));
+    }
+    p.duties.forEach((d, i) => {
+      body.push(dutyCard(p, d, i));
+      if (d.rest) body.push(restCard(d.rest, d, p.duties[i + 1]));
+    });
+    const mine = S.shots.filter(s => s.pairingKey === key);
+    const fileIn = h('input', { type: 'file', accept: 'image/*', multiple: true, onchange: async e => {
+      const files = [...e.target.files]; e.target.value = '';
+      for (const f of files) {
+        try {
+          const rec = { pairingKey: key, name: f.name, added: Date.now(), blob: f };
+          const id = await dbDo('shots', 'readwrite', st => st.add(rec));
+          rec.id = id ?? ++S.memId; S.shots.push(rec);
+        } catch { toast('Could not save that image (storage full?)'); }
+      }
+      if (files.length) toast(`Added ${files.length} screenshot${files.length > 1 ? 's' : ''}`);
+      draw();
+    } });
+    body.push(h('div', { class: 'card' },
+      h('div', { class: 'sect', style: 'margin-top:0', text: 'Source screenshots' }),
+      h('div', { class: 'small muted', text: 'Keep the original VMO screenshots with this pairing as a fallback.' }),
+      h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn', onclick: () => fileIn.click() }, icon('plus', 18), 'Add screenshots'), fileIn),
+      mine.length ? h('div', { class: 'shots' }, mine.map(s => {
+        const u = URL.createObjectURL(s.blob); urls.push(u);
+        return h('button', { type: 'button', 'aria-label': `Open screenshot ${s.name || ''}`, onclick: () => openViewer(s, draw) }, h('img', { src: u, alt: s.name || 'screenshot', loading: 'lazy' }));
+      })) : null));
+    body.push(h('div', { style: 'text-align:center;margin-top:20px' },
+      h('button', { type: 'button', class: 'btn danger', onclick: async () => {
+        if (!confirm(`Remove pairing ${p.id} and its screenshots from this device?`)) return;
+        S.pairings = S.pairings.filter(x => x.key !== key);
+        await dbDel('pairings', key);
+        for (const s of S.shots.filter(x => x.pairingKey === key)) await dbDel('shots', s.id);
+        S.shots = S.shots.filter(x => x.pairingKey !== key);
+        leave(); render(); toast('Pairing removed');
+      } }, icon('trash', 18), 'Remove pairing')));
+    sheet.replaceChildren(
+      h('div', { class: 'sheet-head' },
+        wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
+        h('div', { class: 'sheet-title', text: `Pairing ${p.id}` }),
+        seg(MODES(), S.mode, m => { setMode(m); draw(); render(); })),
+      h('div', { class: 'sheet-body' }, body));
+    scroller.scrollTop = top;
+  };
+  draw();
+  if (scrollDay) {
+    const target = [...sheet.querySelectorAll('[data-days]')].find(e => e.dataset.days.split(' ').includes(scrollDay));
+    if (target) {
+      if (wide) scroller.scrollTop = Math.max(0, target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - sheet.querySelector('.sheet-head').offsetHeight - 8);
+      else target.scrollIntoView({ block: 'start' });
+    }
+  }
+}
+function openViewer(s, after) {
+  const u = URL.createObjectURL(s.blob);
+  const img = h('img', { src: u, alt: s.name || 'screenshot', onclick: () => img.classList.toggle('zoom') });
+  const v = openSheet('viewer', () => URL.revokeObjectURL(u));
+  v.append(
+    h('div', { class: 'bar2' },
+      h('button', { type: 'button', class: 'btn', onclick: closeSheet }, icon('left', 18), 'Close'),
+      h('button', { type: 'button', class: 'btn danger', onclick: async () => {
+        if (!confirm('Delete this screenshot?')) return;
+        await dbDel('shots', s.id); S.shots = S.shots.filter(x => x.id !== s.id);
+        closeSheet(); after && after();
+      } }, icon('trash', 18), 'Delete')),
+    img);
+}
+
+/* ---------- month view ---------- */
+function agendaRow(p, onOpen) {
+  const first = p.duties[0], last = p.duties[p.duties.length - 1];
+  const sv = view(first.start, S.mode), ev = view(last.end, S.mode);
+  const others = otherCrew(p);
+  return h('button', { type: 'button', class: 'row' + (p.key === S.nextKey ? ' isnext' : ''), 'data-pk': p.key, style: `--c:${kindColor(p)}`, onclick: onOpen, 'aria-label': `Open pairing ${p.id}` },
+    h('div', { class: 'stripe' }),
+    h('div', { class: 'rb' },
+      h('div', { class: 'rt' }, isSim(p) ? `${pCode(p)} · ${p.id}` : p.id, p.key === S.nextKey ? h('span', { class: 'tag nowtag', text: pS(p) <= Date.now() ? 'IN PROGRESS' : 'NEXT DUTY' }) : null, (p.tags || []).map(t => h('span', { class: 'tag', text: t }))),
+      h('div', { class: 'rs', text: `${sv.date} ${sv.time} → ${sv.key === ev.key ? '' : ev.date + ' '}${ev.time} ${ev.ab}` }),
+      h('div', { class: 'rm', text: routeOf(p) }),
+      others.length ? h('div', { class: 'rm', text: `With ${others.join(', ')}` }) : null),
+    icon('right', 18));
+}
+function upcoming() { const now = Date.now(); return S.pairings.filter(p => pE(p) > now).sort((a, b) => pS(a) - pS(b))[0]; }
+function nextCard() {
+  const now = Date.now();
+  const up = upcoming();
+  if (!up) return null;
+  const started = pS(up) <= now;
+  const v = view(up.duties[0].start, S.mode);
+  return h('button', { type: 'button', class: 'next', onclick: () => openPairing(up.key) },
+    h('div', { class: 'next-k' }, h('span', { text: started ? 'IN PROGRESS' : 'NEXT DUTY' }), h('span', { class: 'cd', 'data-st': started ? '' : String(pS(up)), text: started ? '' : countdown(pS(up) - now) })),
+    h('div', { class: 'next-t', text: `${pCode(up)}  ·  Report ${v.date} ${v.time} ${v.ab}` }),
+    h('div', { class: 'next-r', text: routeOf(up) }));
+}
+function countdown(ms) {
+  const m = Math.max(0, Math.round(ms / MS));
+  if (m >= 2880) return `in ${Math.floor(m / 1440)}d ${Math.floor((m % 1440) / 60)}h`;
+  if (m >= 60) return `in ${Math.floor(m / 60)}h ${m % 60}m`;
+  return `in ${m}m`;
+}
+function cellFor(key, cur) {
+  const items = S.pairings.filter(p => hasDay(p, key));
+  const day = S.days.find(d => d.date === key);
+  const today = key === keyOf(Date.now(), S.baseTz);
+  const desc = [day ? day.label || day.type : null, ...items.map(p => `pairing ${p.id}`)].filter(Boolean).join(', ') || 'no duty';
+  const kids = [h('span', { class: 'dn', text: String(+key.slice(8)) })];
+  if (day) kids.push(h('div', { class: 'chip-day' + (day.type === 'office' ? '' : ' other'), text: (day.label || day.type).toUpperCase() }));
+  for (const p of items) {
+    const g = segs(p, key);
+    const bar = h('div', { class: 'bar' });
+    if (g.ext) bar.append(h('i', { class: 'ext', style: `left:${g.ext.l}%;width:${g.ext.w}%` }));
+    g.duties.forEach(d => bar.append(h('i', { class: 'duty', style: `left:${d.l}%;width:${d.w}%` })));
+    g.legs.forEach(l => bar.append(h('i', { class: 'leg ' + l.kind, style: `left:${l.l}%;width:${l.w}%` })));
+    kids.push(bar, h('span', { class: 'lbl', text: pCode(p) }));
+  }
+  if (key === S.nextMark) kids.push(h('span', { class: 'nextmark', text: S.nextStarted ? 'NOW' : 'NEXT' }));
+  return h('button', { type: 'button', class: 'cell' + (S.nextDays.has(key) ? ' nextd' : '') + (key.slice(0, 7) !== `${cur.y}-${pad(cur.m + 1)}` ? ' dim' : '') + (today ? ' today' : ''), 'data-key': key, 'aria-label': `${labelKey(key)}: ${desc}` }, kids);
+}
+function dayHours(d) {
+  const st = d.start || (d.type === 'office' ? '09:00' : '');
+  const en = d.end || (d.type === 'office' ? '17:00' : '');
+  return st && en ? ` ${st} to ${en}` : '';
+}
+function onCellTap(key) {
+  const items = S.pairings.filter(p => hasDay(p, key));
+  if (items.length === 1) return openPairing(items[0].key, key);
+  if (items.length > 1) return openDay(key, items);
+  const day = S.days.find(d => d.date === key);
+  toast(day ? `${labelKey(key)}: ${day.label || day.type}${dayHours(day)}` : `${labelKey(key)}: no duty on file`);
+}
+function openDay(key, items) {
+  const wide = isWide();
+  let sheet;
+  if (wide) { sheet = takePane(null); S.sel = null; S.selDay = key; markSel(); } else sheet = openSheet();
+  sheet.append(
+    h('div', { class: 'sheet-head' },
+      wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
+      h('div', { class: 'sheet-title', text: labelKey(key) }),
+      seg(MODES(), S.mode, m => { setMode(m); if (wide) { render(); openDay(key, items); } else { closeSheet(); render(); } })),
+    h('div', { class: 'sheet-body' }, items.map(p => agendaRow(p, () => openPairing(p.key, key)))));
+}
+function shiftMonth(n) {
+  const d = new Date(Date.UTC(S.month.y, S.month.m + n, 1));
+  S.month = { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+  render();
+}
+function gridEl() {
+  const { y, m } = S.month;
+  const firstKey = `${y}-${pad(m + 1)}-01`;
+  const lastKey = addDays(`${m === 11 ? y + 1 : y}-${pad(m === 11 ? 1 : m + 2)}-01`, -1);
+  const start = addDays(firstKey, -dowOf(firstKey));
+  const end = addDays(lastKey, 6 - dowOf(lastKey));
+  const cells = [];
+  for (let k = start; k <= end; k = addDays(k, 1)) cells.push(cellFor(k, S.month));
+  const g = h('div', { class: 'grid', role: 'grid', onclick: e => { const c = e.target.closest('[data-key]'); if (c) onCellTap(c.dataset.key); } }, cells);
+  let x0 = 0, y0 = 0;
+  g.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  g.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 70 && Math.abs(dy) < 50) shiftMonth(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  return g;
+}
+function render() {
+  const app = document.getElementById('app');
+  const nx = upcoming();
+  S.nextKey = nx ? nx.key : null;
+  S.nextDays = nx ? new Set(datesOf(pS(nx), pE(nx))) : new Set();
+  S.nextStarted = !!nx && pS(nx) <= Date.now();
+  S.nextMark = nx ? (S.nextStarted ? keyOf(Date.now(), S.baseTz) : keyOf(pS(nx), S.baseTz)) : null;
+  const { y, m } = S.month;
+  const monthStart = dayStartMs(`${y}-${pad(m + 1)}-01`, S.baseTz);
+  const nextKey = m === 11 ? `${y + 1}-01-01` : `${y}-${pad(m + 2)}-01`;
+  const monthEnd = dayStartMs(nextKey, S.baseTz);
+  const inMonth = S.pairings.filter(p => pS(p) < monthEnd && pE(p) > monthStart).sort((a, b) => pS(a) - pS(b));
+  const ready = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+  const title = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const kids = [
+    h('header', { class: 'top' },
+      h('h1', { text: 'CJT Schedule' }),
+      ready ? h('span', { class: 'pill', text: 'Offline ready' }) : null,
+      h('button', { type: 'button', class: 'iconbtn', id: 'themebtn', 'aria-label': `Theme: ${S.theme === 'auto' ? 'Auto' : S.theme === 'day' ? 'Day' : 'Night'}. Tap to change`, onclick: () => {
+        const order = ['auto', 'day', 'night'];
+        setTheme(order[(order.indexOf(S.theme) + 1) % 3]);
+        render(); toast(`Theme: ${S.theme === 'auto' ? 'Auto (follows device)' : S.theme === 'day' ? 'Day' : 'Night'}`);
+      } }, icon(S.theme === 'day' ? 'sun' : S.theme === 'night' ? 'moon' : 'auto')),
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Settings and import', onclick: openSettings }, icon('gear')))
+  ];
+  if (S.dbError) kids.push(h('div', { class: 'banner', text: 'Storage is not available in this browser, so imported data will be lost when the app closes.' }));
+  const nc = nextCard(); if (nc) kids.push(nc);
+  kids.push(
+    h('div', { class: 'monthbar' },
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Previous month', onclick: () => shiftMonth(-1) }, icon('left')),
+      h('h2', { text: title }),
+      h('button', { type: 'button', class: 'todaybtn', onclick: () => { const k = keyOf(Date.now(), S.baseTz); S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 }; render(); }, text: 'Today' }),
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Next month', onclick: () => shiftMonth(1) }, icon('right'))),
+    h('div', { class: 'week' }, DOW.map(d => h('div', { text: d }))),
+    gridEl(),
+    h('div', { class: 'legend' },
+      h('span', {}, h('b', { style: 'background:var(--flight)' }), 'Flight'),
+      h('span', {}, h('b', { style: 'background:var(--dead)' }), 'Deadhead / ground'),
+      h('span', {}, h('b', { style: 'background:var(--event)' }), 'Sim / event'),
+      h('span', {}, h('b', { style: 'background:var(--dutybar)' }), 'Duty'),
+      h('span', {}, h('b', { style: 'background:var(--office)' }), 'Office')));
+  if (!S.pairings.length && !S.days.length) {
+    kids.push(h('div', { class: 'empty' }, h('p', { style: 'margin:0 0 12px', text: 'No schedule loaded yet.' }), h('button', { type: 'button', class: 'btn primary', onclick: openSettings, text: 'Import schedule file' })));
+  } else if (inMonth.length) {
+    kids.push(h('div', { class: 'sect', text: 'Pairings and events this month' }), ...inMonth.map(p => agendaRow(p, () => openPairing(p.key))));
+  }
+  const wide = isWide();
+  app.classList.toggle('wide', wide);
+  if (wide) {
+    if (!paneEl.firstChild) clearPane();
+    app.replaceChildren(h('div', { class: 'layout' }, h('div', { class: 'left' }, ...kids), paneEl));
+    if (!S.autoDone && S.pairings.length) {
+      S.autoDone = true;
+      const up = upcoming();
+      if (up) { const started = pS(up) <= Date.now(); openPairing(up.key, keyOf(started ? Date.now() : pS(up), S.baseTz)); }
+    }
+    markSel();
+  } else {
+    app.replaceChildren(...kids);
+  }
+}
+
+/* ---------- settings ---------- */
+async function openSettings() {
+  const sheet = openSheet();
+  let est = null;
+  try { if (navigator.storage && navigator.storage.estimate) est = await navigator.storage.estimate(); } catch { /* ignore */ }
+  const themeHost = h('div');
+  const drawTheme = () => themeHost.replaceChildren(seg(THEMES, S.theme, t => { setTheme(t); drawTheme(); render(); }, 'Theme'));
+  drawTheme();
+  const result = h('div', { class: 'result', 'aria-live': 'polite' });
+  let impMode = 'merge';
+  const showRes = (txt, ok) => { result.className = 'result ' + (ok ? 'good' : 'bad'); result.textContent = txt; };
+  const run = async text => {
+    let o;
+    try { o = JSON.parse(text); } catch (e) { return showRes(`That is not valid JSON.\n${e.message}`, false); }
+    const errs = validate(o);
+    if (errs.length) return showRes(`Nothing was imported. Problems found:\n- ${errs.slice(0, 10).join('\n- ')}${errs.length > 10 ? `\n...and ${errs.length - 10} more` : ''}`, false);
+    if (impMode === 'replace' && !confirm('Replace all schedule data on this device with this file? Screenshots are kept.')) return;
+    try {
+      const r = await importData(o, impMode);
+      requestPersist();
+      const lines = [`Imported: ${r.added} pairing${r.added === 1 ? '' : 's'} added, ${r.revised.length} revised, ${r.same} unchanged.`, `Days: ${r.daysAdded} added, ${r.daysChanged} changed.`];
+      if (r.revised.length) lines.push(`Revised: ${r.revised.join(', ')}`);
+      if (r.shots) lines.push(`Screenshots restored: ${r.shots}`);
+      showRes(lines.join('\n'), true);
+      render();
+    } catch (e) { showRes(`Import failed: ${e.message}`, false); }
+  };
+  const fileIn = h('input', { type: 'file', accept: 'application/json,.json,text/plain', onchange: async e => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (f) run(await f.text());
+  } });
+  const paste = h('textarea', { placeholder: 'Paste JSON here', 'aria-label': 'Paste schedule JSON' });
+  const withShots = h('input', { type: 'checkbox', id: 'ws' });
+  const offline = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+  const mb = n => (n / 1048576).toFixed(1) + ' MB';
+  const kv = (a, b) => h('div', { class: 'kv' }, h('span', { text: a }), h('span', { text: b }));
+  sheet.append(
+    h('div', { class: 'sheet-head' },
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
+      h('div', { class: 'sheet-title', text: 'Settings' })),
+    h('div', { class: 'sheet-body' },
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Appearance' }),
+        themeHost,
+        h('div', { class: 'small muted', style: 'margin-top:8px', text: 'Auto follows the device setting. Day is a bright palette for sunlight, Night is easy on the eyes in the dark. The sun and moon button at the top also changes it.' })),
+      IOS && !STANDALONE ? h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Install on iPhone or iPad' }),
+        h('div', { class: 'small', text: 'In Safari tap Share, then Add to Home Screen. Safari can clear stored data of websites that have not been opened for about 7 days, so install it and keep a backup file (Backup, below).' })) : null,
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Time display' }),
+        seg(MODES(), S.mode, m => { setMode(m); render(); closeSheet(); }),
+        h('div', { class: 'small muted', style: 'margin-top:8px', text: `Local: each airport's own time, as VMO shows it. Base: ${S.baseTz}. UTC: Zulu. A second line always shows UTC (or local when UTC is selected).` })),
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Import schedule' }),
+        h('div', { class: 'small muted', text: 'Load the JSON file you received for the month. Importing again updates changed pairings and keeps the earlier version noted.' }),
+        h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn primary', onclick: () => fileIn.click(), text: 'Choose JSON file' }), fileIn),
+        h('label', { class: 'field' }, h('span', { text: 'Or paste the JSON' }), paste),
+        h('div', { style: 'display:flex;gap:16px;flex-wrap:wrap' },
+          h('label', { class: 'check' }, h('input', { type: 'radio', name: 'im', checked: true, onchange: () => { impMode = 'merge'; } }), 'Merge'),
+          h('label', { class: 'check' }, h('input', { type: 'radio', name: 'im', onchange: () => { impMode = 'replace'; } }), 'Replace all')),
+        h('button', { type: 'button', class: 'btn', onclick: () => { if (paste.value.trim()) run(paste.value); else showRes('Paste some JSON first.', false); }, text: 'Import pasted JSON' }),
+        result),
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Backup' }),
+        h('label', { class: 'check' }, withShots, 'Include screenshots (larger file)'),
+        h('button', { type: 'button', class: 'btn', onclick: async () => { try { await exportBackup(withShots.checked); toast('Backup saved to Downloads'); } catch (e) { toast('Backup failed: ' + e.message); } }, text: 'Export backup file' })),
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'Storage and offline' }),
+        kv('Offline use', offline ? 'Ready' : 'Not active yet'),
+        kv('Stored on this device', `${S.pairings.length} pairings, ${S.days.length} days, ${S.shots.length} screenshots`),
+        est && est.usage != null ? kv('Space used', mb(est.usage)) : null,
+        kv('Protected from clean-up', S.persisted == null ? 'Unknown' : S.persisted ? 'Yes' : 'Not guaranteed. Installing to the home screen usually fixes this.'),
+        !offline ? h('div', { class: 'small muted', style: 'margin-top:8px', text: 'Open the app once with a connection, then reload it. After that it works without data.' }) : null,
+        S.installEvt ? h('div', { style: 'margin-top:10px' }, h('button', { type: 'button', class: 'btn', onclick: async () => { S.installEvt.prompt(); await S.installEvt.userChoice; S.installEvt = null; closeSheet(); }, text: 'Install app' })) : null),
+      h('div', { class: 'card' },
+        h('div', { class: 'sect', style: 'margin-top:0', text: 'About' }),
+        kv('Version', APP_VERSION),
+        h('div', { class: 'small muted', style: 'margin-top:8px', text: 'All schedule data stays on this device. Nothing is uploaded. The hosted page contains no schedule data.' })),
+      h('div', { style: 'text-align:center' },
+        h('button', { type: 'button', class: 'btn danger', onclick: async () => {
+          if (!confirm('Delete ALL pairings, days and screenshots from this device? This cannot be undone.')) return;
+          await dbClear('pairings'); await dbClear('days'); await dbClear('shots');
+          S.pairings = []; S.days = []; S.shots = [];
+          closeSheet(); render(); toast('All data deleted');
+        } }, icon('trash', 18), 'Delete all data'))));
+}
+
+/* ---------- boot ---------- */
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); S.installEvt = e; });
+window.addEventListener('appinstalled', () => { S.installEvt = null; });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheets.length) render(); });
+setInterval(() => {
+  document.querySelectorAll('.cd[data-st]').forEach(el => { const st = +el.dataset.st; if (st) el.textContent = countdown(st - Date.now()); });
+}, 30000);
+
+async function init() {
+  try { const m = localStorage.getItem('cjt.mode'); if (['local', 'base', 'utc'].includes(m)) S.mode = m; } catch { /* ignore */ }
+  try { const t = localStorage.getItem('cjt.theme'); if (['auto', 'day', 'night'].includes(t)) S.theme = t; } catch { /* ignore */ }
+  applyTheme();
+  const onChange = f => (darkMQ.addEventListener ? darkMQ.addEventListener('change', f) : null);
+  onChange(() => { if (S.theme === 'auto') applyTheme(); });
+  if (wideMQ.addEventListener) wideMQ.addEventListener('change', () => {
+    if (!wideMQ.matches) { runPaneClose(); S.sel = null; S.selDay = null; paneEl.replaceChildren(); }
+    S.autoDone = false;
+    render();
+  });
+  try { S.db = await openDB(); await loadAll(); } catch (e) { S.db = null; S.dbError = e; }
+  const k = keyOf(Date.now(), S.baseTz);
+  S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 };
+  render();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!sheets.length) render(); });
+    navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching unavailable */ });
+  }
+  requestPersist();
+}
+init();
+})();
+</script>
+</body>
+</html>
