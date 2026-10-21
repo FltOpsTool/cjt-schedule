@@ -104,3 +104,16 @@ Phone numbers (`hotel.phone`, `transport.phone`) must include the country code, 
 ## Splash screen and refresh button (1.6.0)
 - On a cold launch the full bulldog artwork zooms in for about two seconds (it waits until the image is ready, so slow phones do not skip ahead), then the schedule appears. It plays once per launch, skips itself if the device has reduce motion turned on, and works offline (`icons/splash-v1.webp` is cached).
 - The refresh button sits at the centre of the top bar. When online it clears the app's cached files, reloads the newest app from the internet, and also pulls the latest schedule from the data repo if sync is set up. Offline, it changes nothing and says so. Your saved schedule and settings are never touched.
+
+## Globe and flight log (1.7.0)
+- A bottom tab bar switches between Schedule and Globe on every device, including Family view.
+- The Globe is a rotating 3D-style globe with great circle tracks that bow toward the nearer pole, coloured by fleet (yellow 757-200, pink 767-200, blue 767-300). Drag to turn, pinch to zoom, tap an airport for its flights and hours. On a phone, filters (year and fleet) sit behind the sliders button.
+- Flight log data is NOT in this public app. Put a `cjt-logbook` JSON file in the private data repository. The app syncs it like the monthly schedule files, or you can import it by hand in Settings. Importing the same flights again adds nothing.
+
+### cjt-logbook format
+```
+{ "format": "cjt-logbook", "version": 1,
+  "airports": { "CYHM": ["Hamilton Intl", 43.1713, -79.9294, "CA", "Hamilton"] },
+  "legs": [ ["2020-12-07T22:17", "CYHM", "CYQM", "767-300", 2.0] ] }
+```
+Each leg is [departure in UTC, from, to, aircraft type, block hours]. Every airport used must have coordinates in `airports` (from this file or an earlier one). No crew names or registrations are stored.
