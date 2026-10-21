@@ -79,9 +79,11 @@ a{color:inherit}
 @media (max-width:519px){.top .pill.off{display:inline-block;font-size:0;width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#3fb950}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .iconbtn.spin svg{animation:spin .8s linear infinite}
-#splash{position:fixed;inset:0;z-index:1000;background:#000;display:grid;place-items:center;pointer-events:none;overflow:hidden;animation:splashOut .3s ease .9s forwards}
-#splash img{width:min(92vmin,640px);height:auto;animation:splashZoom 1.2s cubic-bezier(.2,.7,.3,1) forwards}
-@keyframes splashZoom{0%{transform:scale(.6);opacity:0}25%{opacity:1}100%{transform:scale(1.3);opacity:1}}
+#splash{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1000;background:#000;pointer-events:none;overflow:hidden}
+#splash img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.72);transform-origin:50% 50%;will-change:transform,opacity}
+#splash.go img{animation:splashZoom 1.7s cubic-bezier(.22,.61,.36,1) forwards}
+#splash.go{animation:splashOut .4s ease 1.9s forwards}
+@keyframes splashZoom{0%{transform:scale(.72);opacity:0}22%{opacity:1}100%{transform:scale(1);opacity:1}}
 @keyframes splashOut{to{opacity:0}}
 @media (prefers-reduced-motion:reduce){#splash{display:none}}
 .iconbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
@@ -277,11 +279,19 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 </head>
 <body>
 <noscript><p style="padding:20px">CJT Schedule needs JavaScript.</p></noscript>
-<div id="splash" aria-hidden="true"><img src="icons/splash-v1.webp" alt="" width="1254" height="1254"></div>
+<div id="splash" aria-hidden="true"><img id="splashimg" src="icons/splash-v1.webp" alt="" width="1254" height="1254"></div>
 <script>
-(function(){var s=document.getElementById('splash'),skip=false;
+(function(){var s=document.getElementById('splash'),im=document.getElementById('splashimg'),skip=false;
+function kill(){if(s&&s.parentNode)s.remove()}
 try{if(sessionStorage.getItem('cjt.splash')){skip=true}else{sessionStorage.setItem('cjt.splash','1')}}catch(e){}
-if(skip){s.remove()}else{setTimeout(function(){if(s.parentNode)s.remove()},1400)}})();
+if(skip){kill();return}
+var started=false;
+function go(){if(started)return;started=true;
+ setTimeout(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){
+  s.classList.add('go');setTimeout(kill,2500)})})},150)}
+var ready=im.decode?im.decode():Promise.resolve();
+ready.then(go,go);
+setTimeout(function(){if(!started)kill()},3500);})();
 </script>
 <div class="app" id="app"></div>
 
@@ -289,7 +299,7 @@ if(skip){s.remove()}else{setTimeout(function(){if(s.parentNode)s.remove()},1400)
 (() => {
 'use strict';
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

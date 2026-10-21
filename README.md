@@ -102,5 +102,5 @@ Replace the files in the repository. Phones pick up the new version the next tim
 Phone numbers (`hotel.phone`, `transport.phone`) must include the country code, for example `+1 859-371-4400` or `+44 1509 670575`, so tap-to-call works from anywhere. As a safety net the app adds +1 to a bare 10 digit North American number.
 
 ## Splash screen and refresh button (1.6.0)
-- On a cold launch the full bulldog artwork zooms in for about one second, then the schedule appears. It plays once per launch, skips itself if the device has reduce motion turned on, and works offline (`icons/splash-v1.webp` is cached).
+- On a cold launch the full bulldog artwork zooms in for about two seconds (it waits until the image is ready, so slow phones do not skip ahead), then the schedule appears. It plays once per launch, skips itself if the device has reduce motion turned on, and works offline (`icons/splash-v1.webp` is cached).
 - The refresh button sits at the centre of the top bar. When online it clears the app's cached files, reloads the newest app from the internet, and also pulls the latest schedule from the data repo if sync is set up. Offline, it changes nothing and says so. Your saved schedule and settings are never touched.
