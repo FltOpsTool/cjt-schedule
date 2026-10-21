@@ -1,0 +1,3 @@
+# Schedule data must never be committed (GitHub Pages sites are public).
+*.json
+.DS_Store

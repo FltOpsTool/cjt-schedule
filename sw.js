@@ -1,6 +1,6 @@
 /* CJT Schedule service worker.
    Caches the app shell only. Schedule data lives in IndexedDB on the phone, never here. */
-const VERSION = '1.3.2';
+const VERSION = '1.5.2';
 const CACHE = 'cjt-schedule-v' + VERSION;
 const SHELL = [
   './',
@@ -9,7 +9,14 @@ const SHELL = [
   './icons/icon-192-v2.png',
   './icons/icon-512-v2.png',
   './icons/icon-maskable-512-v2.png',
-  './icons/apple-touch-icon-v2.png'
+  './icons/apple-touch-icon-v2.png',
+  './icons/duty-flight.png',
+  './icons/duty-deadhead.png',
+  './icons/duty-ground.png',
+  './icons/duty-office.png',
+  './icons/duty-layover.png',
+  './icons/duty-sim.png',
+  './icons/duty-event.png'
 ];
 
 self.addEventListener('install', e => {

@@ -31,7 +31,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --ext:#26324a; --dutybar:#516080;
   --tag-bg:#243556; --tag-ink:#c8d6f0;
   --next-a:#17304a; --next-b:#142238; --next-line:#2c4a6e;
-  --rest-bg:#151a36; --rest-line:#3b3f7a; --rest-ink:#b6baff;
+  --rest-bg:#151a36; --rest-line:#3b3f7a; --rest-ink:#b6baff; --moon:#9db4e8;
   --banner-bg:#3a2216; --banner-line:#7a3d1d; --banner-ink:#ffd2bd;
   --notice-bg:#2a2a12; --notice-line:#6a6a22; --notice-ink:#f3efb0;
   --danger-bg:#3b1a1a; --danger-line:#7a2f2f; --danger-ink:#ffb4b4;
@@ -51,7 +51,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --ext:#c3cde0; --dutybar:#7a88a8;
   --tag-bg:#dde5f4; --tag-ink:#243556;
   --next-a:#e0eff6; --next-b:#d6e6f2; --next-line:#a8c8dc;
-  --rest-bg:#eceefd; --rest-line:#c3c7ee; --rest-ink:#3d42a8;
+  --rest-bg:#eceefd; --rest-line:#c3c7ee; --rest-ink:#3d42a8; --moon:#4b5f92;
   --banner-bg:#fff1e6; --banner-line:#eeb98c; --banner-ink:#7a3d1d;
   --notice-bg:#fff8d4; --notice-line:#e2d369; --notice-ink:#5a5210;
   --danger-bg:#fdecec; --danger-line:#e3a0a0; --danger-ink:#a12a2a;
@@ -88,7 +88,7 @@ a{color:inherit}
 .todaybtn{font-size:13px;font-weight:700;padding:0 12px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2)}
 .week,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .week{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0}
-.grid{border-top-left-radius:0;border-top-right-radius:0;touch-action:pan-y}
+.grid{border-top-left-radius:0;border-top-right-radius:0;touch-action:pan-y pinch-zoom}
 .week div{background:var(--head);font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:5px 0}
 .cell{position:relative;min-height:68px;background:var(--surface);padding:4px 3px 4px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .cell.dim{background:var(--dim)}
@@ -114,6 +114,11 @@ a{color:inherit}
 .lbl{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .chip-day{background:var(--office);color:var(--office-ink);font-size:9px;font-weight:800;letter-spacing:.02em;border-radius:4px;padding:4px 0;text-align:center;margin-top:1px;overflow:hidden;text-overflow:clip;white-space:nowrap}
 .chip-day.other{background:#5b6b8c;color:#fff}
+.ci{display:flex;gap:2px;justify-content:flex-end;align-items:flex-end;margin-top:auto;min-height:21px;pointer-events:none}
+.ic{display:inline-flex;width:21px;height:21px;flex:none}
+.ic img{width:100%;height:100%;display:block;border-radius:22%;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.ic-sim{width:23px;height:23px}
+@media (max-width:599px){.chip-day.office{display:none}.cell{min-height:78px}.ci .ic:nth-child(3){display:none}.cell.oo .ci{position:absolute;left:0;right:0;top:22px;bottom:2px;margin:0;justify-content:center;align-items:center}.cell.oo .ic{width:40px;height:40px}}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:10px 2px 14px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend b{width:12px;height:12px;border-radius:3px;display:inline-block}
@@ -224,11 +229,14 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
   .app{max-width:760px;padding:0 20px 56px}
   .top h1{font-size:22px}
   .monthbar h2{font-size:24px}
-  .cell{min-height:100px;padding:6px 6px}
+  .cell{min-height:124px;padding:6px 6px}
   .dn{font-size:14px}
   .bar{height:22px}
   .lbl{font-size:12px}
   .chip-day{font-size:11px;padding:6px 0}
+  .ic{width:42px;height:42px}
+  .ic-sim{width:48px;height:48px}
+  .ci{gap:6px;min-height:48px}
   .week div{font-size:12px;padding:7px 0}
   .legend{font-size:13px}
   .sheet{background:var(--backdrop)}
@@ -251,7 +259,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
   .pane .panel{max-width:none;margin:0;box-shadow:none;background:transparent;min-height:0}
   .pane .sheet-head{padding-top:calc(12px + env(safe-area-inset-top));background:var(--bg)}
   .pane .sheet-body{padding:12px 12px 48px 18px}
-  .cell{min-height:92px}
+  .cell{min-height:112px}
 }
 
 .viewer .panel{max-width:none;margin:0;box-shadow:none;background:#000}
@@ -265,7 +273,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 (() => {
 'use strict';
 
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.5.2';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -809,7 +817,12 @@ function legCard(l) {
       h('div', { class: 'times' }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
       chips.length ? h('div', { class: 'chips' }, chips) : null));
 }
-function telHref(n) { return 'tel:' + n.replace(/[^\d+]/g, ''); }
+/* Always dial with a country code. Numbers in the data should start with +. A bare 10 digit North American number gets +1 as a safety net. */
+function telHref(n) {
+  let d = String(n).replace(/[^\d+]/g, '');
+  if (!d.startsWith('+')) d = d.length === 10 ? '+1' + d : d.length === 11 && d[0] === '1' ? '+' + d : d;
+  return 'tel:' + d;
+}
 function callRow(label, name, num) {
   return h('a', { class: 'call', href: telHref(num), 'aria-label': `Call ${name} ${num}` },
     icon('phone', 20),
@@ -993,23 +1006,40 @@ function countdown(ms) {
   if (m >= 60) return `in ${Math.floor(m / 60)}h ${m % 60}m`;
   return `in ${m}m`;
 }
+const DAYICON = { 'airplane': 'flight', 'airplane-in-flight': 'deadhead', 'car-simple': 'ground', 'desktop': 'office', 'moon-stars': 'layover', 'calendar-star': 'event', 'sim': 'sim' };
+function dayIcon(k) {
+  const w = h('span', { class: 'ic ic-' + k, 'aria-hidden': 'true' });
+  w.append(h('img', { src: `icons/duty-${DAYICON[k]}.png`, alt: '', width: '96', height: '96', decoding: 'async', draggable: 'false' }));
+  return w;
+}
+function legItem(name, label) { const w = dayIcon(name); w.style.width = w.style.height = '22px'; return h('span', {}, w, label); }
 function cellFor(key, cur) {
   const items = S.pairings.filter(p => hasDay(p, key));
   const day = S.days.find(d => d.date === key);
   const today = key === keyOf(Date.now(), S.baseTz);
   const desc = [day ? day.label || day.type : null, ...items.map(p => `pairing ${p.id}`)].filter(Boolean).join(', ') || 'no duty';
   const kids = [h('span', { class: 'dn', text: String(+key.slice(8)) })];
-  if (day) kids.push(h('div', { class: 'chip-day' + (day.type === 'office' ? '' : ' other'), text: (day.label || day.type).toUpperCase() }));
+  const seq = [];
+  if (day) kids.push(h('div', { class: 'chip-day' + (day.type === 'office' ? ' office' : ' other'), text: (day.label || day.type).toUpperCase() }));
+  if (day && day.type === 'office') seq.push({ t: (() => { const m = /^(\d{1,2}):(\d{2})/.exec(day.start || '09:00'); return m ? (+m[1] * 60 + +m[2]) / 14.4 : 37.5; })(), k: 'desktop' });
+  let touched = false;
   for (const p of items) {
     const g = segs(p, key);
+    touched = true;
+    g.legs.forEach(l => seq.push({ t: l.l, k: l.kind === 'event' ? (isSim(p) ? 'sim' : 'calendar-star') : l.kind === 'flight' ? 'airplane' : l.kind === 'deadhead' ? 'airplane-in-flight' : 'car-simple' }));
     const bar = h('div', { class: 'bar' });
     if (g.ext) bar.append(h('i', { class: 'ext', style: `left:${g.ext.l}%;width:${g.ext.w}%` }));
     g.duties.forEach(d => bar.append(h('i', { class: 'duty', style: `left:${d.l}%;width:${d.w}%` })));
     g.legs.forEach(l => bar.append(h('i', { class: 'leg ' + l.kind, style: `left:${l.l}%;width:${l.w}%` })));
     kids.push(bar, h('span', { class: 'lbl', text: pCode(p) }));
   }
+  seq.sort((x, y) => x.t - y.t);
+  const picked = seq.map(x => x.k).filter((k, i, arr) => i === 0 || k !== arr[i - 1]);
+  if (!picked.length && touched) picked.push('moon-stars');
+  if (picked.length) kids.push(h('div', { class: 'ci' }, picked.slice(0, 3).map(dayIcon)));
+  const oo = picked.length === 1 && picked[0] === 'desktop';
   if (key === S.nextMark) kids.push(h('span', { class: 'nextmark', text: S.nextStarted ? 'NOW' : 'NEXT' }));
-  return h('button', { type: 'button', class: 'cell' + (S.nextDays.has(key) ? ' nextd' : '') + (key.slice(0, 7) !== `${cur.y}-${pad(cur.m + 1)}` ? ' dim' : '') + (today ? ' today' : ''), 'data-key': key, 'aria-label': `${labelKey(key)}: ${desc}` }, kids);
+  return h('button', { type: 'button', class: 'cell' + (oo ? ' oo' : '') + (S.nextDays.has(key) ? ' nextd' : '') + (key.slice(0, 7) !== `${cur.y}-${pad(cur.m + 1)}` ? ' dim' : '') + (today ? ' today' : ''), 'data-key': key, 'aria-label': `${labelKey(key)}: ${desc}` }, kids);
 }
 function dayHours(d) {
   const st = d.start || (d.type === 'office' ? '09:00' : '');
@@ -1092,11 +1122,8 @@ function render() {
     h('div', { class: 'week' }, DOW.map(d => h('div', { text: d }))),
     gridEl(),
     h('div', { class: 'legend' },
-      h('span', {}, h('b', { style: 'background:var(--flight)' }), 'Flight'),
-      h('span', {}, h('b', { style: 'background:var(--dead)' }), 'Deadhead / ground'),
-      h('span', {}, h('b', { style: 'background:var(--event)' }), 'Sim / event'),
-      h('span', {}, h('b', { style: 'background:var(--dutybar)' }), 'Duty'),
-      h('span', {}, h('b', { style: 'background:var(--office)' }), 'Office')));
+      legItem('airplane', 'Flight'), legItem('airplane-in-flight', 'Deadhead'), legItem('car-simple', 'Ground'), legItem('sim', 'Simulator'), legItem('desktop', 'Office'), legItem('moon-stars', 'Layover'),
+      h('span', {}, h('b', { style: 'background:var(--dutybar)' }), 'Duty')));
   if (!S.pairings.length && !S.days.length) {
     kids.push(h('div', { class: 'empty' }, h('p', { style: 'margin:0 0 12px', text: 'No schedule loaded yet.' }), h('button', { type: 'button', class: 'btn primary', onclick: openSettings, text: 'Import schedule file' })));
   } else if (inMonth.length) {

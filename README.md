@@ -62,6 +62,12 @@ A simpler read-only view for family devices. It shows report and release times, 
 - Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. The link formats are unverified, so report any that fail.
 - Family view hides data on screen only. The JSON on that device still contains the full schedule.
 
+## Calendar icons
+
+Each calendar day shows small icons in the order things happen that day: a climbing yellow aircraft for flying, a level pink aircraft for positioning (deadhead), a pink car for ground transport, an orange monitor for office days, a purple motion simulator for sim days, and a blue moon for layover days with no flying or office work. Up to three icons show on iPad, two on a phone. On a phone, a plain office day shows one large centred icon instead of the OFFICE label.
+
+The icons are the owner's own artwork (`icons/duty-*.png`), each tinted to match its category colour. They are cached for offline use like the rest of the app.
+
 ## Install on iPhone or iPad
 
 1. Open the app address in **Safari** (not another browser).
@@ -92,3 +98,5 @@ Replace the files in the repository. Phones pick up the new version the next tim
 ## Data file format (version 1)
 
 `format: "cjt-schedule"`, `version: 1`, `pairings[]` (each with `duties[]`, each with `legs[]` and an optional `rest`), and `days[]` for office and other non-flying days (optional `start`/`end` as HH:MM base time; office days default to 09:00 to 17:00). Sim events may carry `briefingMin` and `debriefMin`. Times are stored as UTC with the IANA time zone and abbreviation VMO displayed.
+
+Phone numbers (`hotel.phone`, `transport.phone`) must include the country code, for example `+1 859-371-4400` or `+44 1509 670575`, so tap-to-call works from anywhere. As a safety net the app adds +1 to a bare 10 digit North American number.
