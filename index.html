@@ -74,6 +74,16 @@ a{color:inherit}
 .top h1 small{display:block;font-size:11px;font-weight:800;line-height:1.1;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
 @media (max-width:399px){.pill.off{font-size:10px;padding:3px 7px}}
 @media (max-width:349px){.pill.off{display:none}}
+.top .tl{flex:1;min-width:0;display:flex;align-items:center}
+.top .tr{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+@media (max-width:519px){.top .pill.off{display:inline-block;font-size:0;width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#3fb950}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.iconbtn.spin svg{animation:spin .8s linear infinite}
+#splash{position:fixed;inset:0;z-index:1000;background:#000;display:grid;place-items:center;pointer-events:none;overflow:hidden;animation:splashOut .3s ease .9s forwards}
+#splash img{width:min(92vmin,640px);height:auto;animation:splashZoom 1.2s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes splashZoom{0%{transform:scale(.6);opacity:0}25%{opacity:1}100%{transform:scale(1.3);opacity:1}}
+@keyframes splashOut{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){#splash{display:none}}
 .iconbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
 .iconbtn svg{display:block}
 .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);border:1px solid var(--pill-line);white-space:nowrap}
@@ -267,13 +277,19 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 </head>
 <body>
 <noscript><p style="padding:20px">CJT Schedule needs JavaScript.</p></noscript>
+<div id="splash" aria-hidden="true"><img src="icons/splash-v1.webp" alt="" width="1254" height="1254"></div>
+<script>
+(function(){var s=document.getElementById('splash'),skip=false;
+try{if(sessionStorage.getItem('cjt.splash')){skip=true}else{sessionStorage.setItem('cjt.splash','1')}}catch(e){}
+if(skip){s.remove()}else{setTimeout(function(){if(s.parentNode)s.remove()},1400)}})();
+</script>
 <div class="app" id="app"></div>
 
 <script>
 (() => {
 'use strict';
 
-const APP_VERSION = '1.5.3';
+const APP_VERSION = '1.6.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -327,6 +343,7 @@ const ICONS = {
   phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/>',
   moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
 };
@@ -659,6 +676,31 @@ async function autoSync(force) {
   if (!r.ok) { if ([401, 403, 404].includes(r.status)) toast('Sync: ' + r.text); return; }
   if (r.added || r.revised.length || r.daysAdded || r.daysChanged) { render(); toast('Schedule updated: ' + syncSummary(r)); }
   else if (r.bad.length) toast('Sync skipped ' + r.bad[0]);
+}
+
+let refreshing = false;
+async function hardRefresh() {
+  if (refreshing) return;
+  if (navigator.onLine === false) { toast('Offline. Nothing changed, using the app on this device.'); return; }
+  refreshing = true;
+  const b = document.getElementById('refreshbtn'); if (b) b.classList.add('spin');
+  const done = () => { refreshing = false; const x = document.getElementById('refreshbtn'); if (x) x.classList.remove('spin'); };
+  try {
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 10000);
+    const r = await fetch('./index.html?r=' + Date.now(), { cache: 'reload', signal: ctl.signal });
+    clearTimeout(to);
+    if (!r.ok) throw new Error('server ' + r.status);
+  } catch { done(); toast('Could not reach the internet. Nothing changed.'); return; }
+  let msg = 'App refreshed';
+  if (S.sync.token && !S.dbError) {
+    try { const sr = await syncNow(); msg = sr.ok ? 'App refreshed. ' + syncSummary(sr) : 'App refreshed. Sync: ' + sr.text; } catch { /* keep default */ }
+  }
+  try { sessionStorage.setItem('cjt.msg', msg); } catch { /* ignore */ }
+  try {
+    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.filter(k => k.startsWith('cjt-schedule-')).map(k => caches.delete(k))); }
+    if (navigator.serviceWorker) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(x => x.unregister())); }
+  } catch { /* reload anyway */ }
+  location.reload();
 }
 
 /* ---------- schedule logic ---------- */
@@ -1102,14 +1144,16 @@ function render() {
   const title = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   const kids = [
     h('header', { class: 'top' },
-      h('h1', {}, 'CJT Schedule', FAM() ? h('small', { text: 'Family view' }) : null),
-      ready ? h('span', { class: 'pill off', text: 'Offline ready' }) : null,
-      h('button', { type: 'button', class: 'iconbtn', id: 'themebtn', 'aria-label': `Theme: ${S.theme === 'auto' ? 'Auto' : S.theme === 'day' ? 'Day' : 'Night'}. Tap to change`, onclick: () => {
-        const order = ['auto', 'day', 'night'];
-        setTheme(order[(order.indexOf(S.theme) + 1) % 3]);
-        render(); toast(`Theme: ${S.theme === 'auto' ? 'Auto (follows device)' : S.theme === 'day' ? 'Day' : 'Night'}`);
-      } }, icon(S.theme === 'day' ? 'sun' : S.theme === 'night' ? 'moon' : 'auto')),
-      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Settings and import', onclick: openSettings }, icon('gear')))
+      h('div', { class: 'tl' }, h('h1', {}, 'CJT Schedule', FAM() ? h('small', { text: 'Family view' }) : null)),
+      h('button', { type: 'button', class: 'iconbtn', id: 'refreshbtn', 'aria-label': 'Refresh from the internet', onclick: hardRefresh }, icon('refresh')),
+      h('div', { class: 'tr' },
+        ready ? h('span', { class: 'pill off', title: 'Offline ready', text: 'Offline ready' }) : null,
+        h('button', { type: 'button', class: 'iconbtn', id: 'themebtn', 'aria-label': `Theme: ${S.theme === 'auto' ? 'Auto' : S.theme === 'day' ? 'Day' : 'Night'}. Tap to change`, onclick: () => {
+          const order = ['auto', 'day', 'night'];
+          setTheme(order[(order.indexOf(S.theme) + 1) % 3]);
+          render(); toast(`Theme: ${S.theme === 'auto' ? 'Auto (follows device)' : S.theme === 'day' ? 'Day' : 'Night'}`);
+        } }, icon(S.theme === 'day' ? 'sun' : S.theme === 'night' ? 'moon' : 'auto')),
+        h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Settings and import', onclick: openSettings }, icon('gear'))))
   ];
   if (S.dbError) kids.push(h('div', { class: 'banner', text: 'Storage is not available in this browser, so imported data will be lost when the app closes.' }));
   const nc = nextCard(); if (nc) kids.push(nc);
@@ -1313,6 +1357,7 @@ async function init() {
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (!sheets.length) render(); });
     navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching unavailable */ });
   }
+  try { const m = sessionStorage.getItem('cjt.msg'); if (m) { sessionStorage.removeItem('cjt.msg'); toast(m); } } catch { /* ignore */ }
   requestPersist();
   autoSync(true);
 }
