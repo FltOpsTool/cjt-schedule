@@ -356,13 +356,14 @@ setTimeout(function(){if(!started)kill()},3500);})();
 function CJTGlobe(canvas, LAND, DATA0, hooks) {
   let DATA = DATA0, AP = DATA0.ap;
   const { geoOrthographic, geoPath, geoGraticule10, geoInterpolate, geoDistance } = d3g;
-  const FLEET = [{ k: '757-200', c: '#ffc21a' }, { k: '767-200', c: '#ff5fa8' }, { k: '767-300', c: '#4aa8ff' }, { k: 'Other', c: '#b9c4db' }];
-  const fi = t => { const i = FLEET.findIndex(f => f.k === t); return i < 0 ? 3 : i; };
+  const FLEET = [{ k: '757-200', c: '#ffc21a' }, { k: '767-200', c: '#ff5fa8' }, { k: '767-300', c: '#4aa8ff' }, { k: 'BE1900', c: '#3ddc97' }, { k: 'Light', n: 'Light aircraft', c: '#b388ff' }, { k: 'Other', c: '#b9c4db' }];
+  const LIGHT = /^(C1\d\d|PA\d+)$/;
+  const fi = t => { const g = LIGHT.test(t) ? 'Light' : t; const i = FLEET.findIndex(f => f.k === g); return i < 0 ? FLEET.length - 1 : i; };
   const ctx = canvas.getContext('2d');
   const proj = geoOrthographic().clipAngle(90).precision(0.4);
   const path = geoPath(proj, ctx);
   const grat = geoGraticule10();
-  const S = { rot: [60, -38], z: 1, dpr: 1, w: 0, h: 0, auto: true, year: 'all', fleet: [true, true, true, true], sel: null, dirty: true, lastTouch: 0, vel: [0, 0], drag: false };
+  const S = { rot: [60, -38], z: 1, dpr: 1, w: 0, h: 0, auto: true, year: 'all', fleet: FLEET.map(() => true), sel: null, dirty: true, lastTouch: 0, vel: [0, 0], drag: false };
   let routes = [];
   const stars = Array.from({ length: 90 }, (_, i) => { const r = (n) => { const x = Math.sin(n * 91.7 + i * 12.9898) * 43758.5453; return x - Math.floor(x); }; return [r(1), r(2), 0.4 + r(3) * 1.1, 0.25 + r(4) * 0.5]; });
   function build() {
@@ -575,7 +576,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.9.2';
+const APP_VERSION = '1.10.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -908,6 +909,7 @@ function validateLogbook(o) {
   const errs = [];
   if (!o || o.format !== 'cjt-logbook') { errs.push('This is not a CJT flight log file.'); return errs; }
   if (o.version !== 1) errs.push('Unsupported flight log version.');
+  if (o.replace !== undefined && typeof o.replace !== 'boolean') errs.push('replace must be true or false.');
   const ap = o.airports && typeof o.airports === 'object' && !Array.isArray(o.airports) ? o.airports : null;
   if (!ap) errs.push('airports must be an object of ICAO code to [name, lat, lon, country, city].');
   else for (const [k, v] of Object.entries(ap)) {
@@ -929,11 +931,12 @@ function validateLogbook(o) {
 async function importLogbook(o) {
   const res = { legs: 0, airports: 0 };
   const lb = S.logbook;
+  if (o.replace === true) { lb.airports = {}; lb.legs = []; }
   for (const [k, v] of Object.entries(o.airports || {})) { if (!lb.airports[k]) res.airports++; lb.airports[k] = v; }
   const keys = new Set(lb.legs.map(l => l[0] + l[1] + l[2]));
   for (const l of o.legs) {
     const k = l[0] + l[1] + l[2];
-    if (keys.has(k)) continue;
+    if (keys.has(k) && o.replace !== true) continue;
     keys.add(k); lb.legs.push([l[0], l[1], l[2], l[3], l[4]]); res.legs++;
   }
   lb.legs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
@@ -1793,7 +1796,7 @@ function glBuild() {
     const ys = ['all', ...st.years];
     panel.replaceChildren(
       ...ys.map(y => h('button', { type: 'button', class: 'gl-chip' + (G.S.year === y ? ' on' : ''), onclick: () => { G.setYear(y); drawUI(); showInfo(G.S.sel); } }, y === 'all' ? 'All years' : y)),
-      ...G.FLEET.map((f, i) => st.types[i] ? h('button', { type: 'button', class: 'gl-chip fl' + (G.S.fleet[i] ? '' : ' off'), onclick: () => { G.toggleFleet(i); drawUI(); showInfo(G.S.sel); } }, h('i', { style: 'background:' + f.c }), f.k) : []).flat());
+      ...G.FLEET.map((f, i) => st.types[i] ? h('button', { type: 'button', class: 'gl-chip fl' + (G.S.fleet[i] ? '' : ' off'), onclick: () => { G.toggleFleet(i); drawUI(); showInfo(G.S.sel); } }, h('i', { style: 'background:' + f.c }), f.n || f.k) : []).flat());
     empty.style.display = S.logbook.legs.length ? 'none' : 'grid';
   }
   autoB.onclick = () => { G.S.auto = !G.S.auto; G.setAuto(G.S.auto); autoB.textContent = 'Auto-rotate: ' + (G.S.auto ? 'on' : 'off'); };
