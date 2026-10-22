@@ -117,3 +117,5 @@ Phone numbers (`hotel.phone`, `transport.phone`) must include the country code, 
   "legs": [ ["2020-12-07T22:17", "CYHM", "CYQM", "767-300", 2.0] ] }
 ```
 Each leg is [departure in UTC, from, to, aircraft type, block hours]. Every airport used must have coordinates in `airports` (from this file or an earlier one). No crew names or registrations are stored.
+
+Day mode uses a separate set of day icons (`icons/duty-*-day.png`, transparent background so they sit cleanly on the light calendar). Night mode keeps the dark set. The switch follows the theme button, with no reload.
