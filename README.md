@@ -1,10 +1,16 @@
-# CJT Schedule
+# Ashley Aloft (personal flight schedule and logbook)
 
 Offline crew schedule and pairing viewer for a phone. Calendar view, tap a day for the full pairing: report and release, legs, aircraft, crew, hotels, phone numbers, booking locators.
 
 **Leg tile layout (1.9.2).** In Family view a flight tile shows the departure code on the left, an arrow in the centre and the arrival code on the right, with each airport's name directly under its own code (long names wrap inside their column). An airport without a name shows the code only. Full view, simulator and event tiles are unchanged.
 
 **Full flight log and new aircraft (1.10.0).** The flight log file can now carry `"replace": true`. When it does, importing it replaces the whole stored log instead of merging, so a rebuilt log fully overwrites an older one (legs that share a departure time are all kept). New fleet filters: BE1900 (green) and Light aircraft (purple: Cessna 150, 152, 172, Piper PA34, PA28). Aircraft types in the file are `757-200`, `767-200`, `767-300`, `BE1900`, `C150`, `C152`, `C172`, `PA34`, `PA28`. Flights that start and end at the same airport count in flights and hours but draw no arc.
+
+**Logbook history on the calendar (1.11.0).** Past flights from the logbook are rebuilt as pairings, one yearly file per year (`cjt-schedule-history-YYYY.json`, normal schedule format, private repo only). They are grouped from the logbook times: a new duty starts after a rest of 10 hours or more, and a pairing ends when the aircraft returns to where it started and then waits 6 hours or more (or 4 days passes, or a flight does not continue from the previous landing). Each pairing carries `"historic": true` and each leg `"log": true`. The logbook has no report or release times, so those boxes and the duty-time chip are hidden and each duty runs from first departure to last landing. Crew names appear on the pairing and duty (Family view hides them). Roles are inferred: your own role from PIC or SIC time, the other pilot as the opposite role, and third or fourth pilots as relief (RP). Simulator sessions are one pairing each. Tracking links are not shown for logbook flights. Tap the month name at the top of the calendar to jump to any month and year.
+
+**Name (1.11.0).** The app is now called Ashley Aloft. On Android the installed app name and the splash caption only change after the app is removed and installed again from the browser.
+
+**Pilots tab (1.12.0).** A third tab lists everyone you have flown with, A to Z by surname, with a search box that ignores word order, accents and punctuation. Tap a name for flights together, flight time, first and last flown, days together, simulator sessions, their role on your flights, the airports you shared most, and every pairing newest first. Tap a pairing to open it; Back returns to the pilot. Names come from the crew on each logbook leg (`crew` on the leg) and from VMO duty crew. The tab is hidden in Family view. Simulator partners can be stored as "Last First", so the same person is matched by sorted words and the most common spelling is shown.
 
 ## Privacy
 

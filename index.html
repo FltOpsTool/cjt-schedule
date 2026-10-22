@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CJT Schedule">
+<meta name="apple-mobile-web-app-title" content="Ashley Aloft">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-v3.png">
 <script>
 /* set the theme before first paint so there is no flash */
@@ -18,7 +18,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192-v3.png">
-<title>CJT Schedule</title>
+<title>Ashley Aloft</title>
 <style>
 :root{
   color-scheme:dark;
@@ -97,6 +97,17 @@ a{color:inherit}
 @media (min-width:600px){.next-t{font-size:24px}.next-r{font-size:16px}}
 .monthbar{display:flex;align-items:center;gap:8px;margin:2px 0 8px}
 .monthbar h2{flex:1;margin:0;font-size:20px;text-align:center}
+.mtitle{font:inherit;color:inherit;background:none;border:0;padding:8px 14px;border-radius:12px;cursor:pointer}
+.mtitle::after{content:" \25BE";font-size:.7em;color:var(--muted)}
+.mtitle:active{background:var(--surface)}
+.mp-years{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.mp-y{min-width:64px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);color:var(--text);font-weight:700;font-size:15px}
+.mp-y.none{opacity:.45}
+.mp-y.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mp-months{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mp-m{height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);color:var(--muted);font-weight:700;font-size:16px}
+.mp-m.has{color:var(--text);border-color:var(--line)}
+.mp-m.cur{outline:2px solid var(--accent)}
 .todaybtn{font-size:13px;font-weight:700;padding:0 12px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2)}
 .week,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .week{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0}
@@ -175,7 +186,7 @@ a{color:inherit}
 .person.me{border-color:var(--accent)}
 .person .you{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase}
 .role{font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:#1d6fa8;color:#fff;min-width:28px;text-align:center}
-.r-SI{background:#a83f62}.r-CP{background:#1f7a5c}.r-FO{background:#1d6fa8}.r-CA{background:#1d6fa8}
+.r-SI{background:#a83f62}.r-CP{background:#1f7a5c}.r-FO{background:#1d6fa8}.r-CA{background:#1d6fa8}.r-RP{background:#6b7a99}
 .crewrow .sub{font-size:12px;color:var(--muted)}
 .duty{scroll-margin-top:76px}
 .dh{display:flex;align-items:baseline;gap:8px}
@@ -284,6 +295,25 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;color:var(--muted);text-align:center;min-height:48px}
 .tabbar button[aria-current="page"]{color:var(--accent)}
 .toast{bottom:calc(var(--tabh) + 14px)!important}
+#pilots{position:fixed;left:0;right:0;top:0;bottom:var(--tabh);z-index:12;background:var(--bg);color:var(--text);display:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.pl-wrap{max-width:720px;margin:0 auto;padding:0 16px 28px}
+.pl-top{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(14px + env(safe-area-inset-top)) 0 10px}
+.pl-top h1{font-size:22px;margin:0 0 10px;display:flex;align-items:baseline;gap:10px}
+.pl-top h1 small{font-size:13px;font-weight:600;color:var(--muted)}
+.pl-search{width:100%;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:0 14px;font-size:16px;font-family:inherit}
+.pl-letter{margin:16px 4px 6px;font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.pl-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 14px;margin:0 0 8px;min-height:60px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);color:var(--text);font-family:inherit}
+.pl-row .n{font-weight:800;font-size:17px;display:block}
+.pl-row .s{font-size:13px;color:var(--muted);display:block;margin-top:2px}
+.pl-row .c{margin-left:auto;font-weight:800;color:var(--accent);font-size:15px;white-space:nowrap}
+.pl-empty{padding:40px 12px;text-align:center;color:var(--muted)}
+.pl-year{margin:18px 2px 6px;font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.pl-leg{display:block;width:100%;text-align:left;padding:10px 14px;margin:0 0 8px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);border-left:5px solid var(--flight);color:var(--text);font-family:inherit}
+.pl-leg.sim{border-left-color:var(--event)}
+.pl-leg .d{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pl-leg .r{font-size:18px;font-weight:800;letter-spacing:.02em;margin-top:3px}
+.pl-leg .m{font-size:13px;color:var(--muted);margin-top:3px}
+.pl-tags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
 #globe{position:fixed;left:0;right:0;top:0;bottom:var(--tabh);z-index:12;background:#050b18;color:#e8f0ff;display:none;overflow:hidden}
 #globe canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .gl-top{position:absolute;left:0;right:0;top:0;padding:calc(8px + env(safe-area-inset-top)) 12px 0;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -333,7 +363,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 </style>
 </head>
 <body>
-<noscript><p style="padding:20px">CJT Schedule needs JavaScript.</p></noscript>
+<noscript><p style="padding:20px">Ashley Aloft needs JavaScript.</p></noscript>
 <div id="splash" aria-hidden="true"><img id="splashimg" src="icons/splash-v1.webp" alt="" width="1254" height="1254"></div>
 <script>
 (function(){var s=document.getElementById('splash'),im=document.getElementById('splashimg'),skip=false;
@@ -576,11 +606,11 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.10.0';
+const APP_VERSION = '1.12.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const ROLE = { CA:'Captain', FO:'First Officer', SI:'Simulator Instructor', CP:'Check Pilot' };
+const ROLE = { CA:'Captain', FO:'First Officer', RP:'Relief Pilot', SI:'Simulator Instructor', CP:'Check Pilot' };
 const KINDS = ['flight','deadhead','ground','event'];
 /* simulator event codes name the device, not a time slot */
 const SIM_DEVICES = { SMA: { name: 'SIM A', id: 'TC 1057' }, SMB: { name: 'SIM B', id: 'TC 1147' } };
@@ -635,6 +665,7 @@ const ICONS = {
   globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
   moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
 };
 function icon(name, size = 22) {
@@ -1202,7 +1233,7 @@ function legCard(l) {
   if (l.briefingMin && !FAM()) chips.push(h('span', { class: 'chip', text: `Briefing ${fmtDur(l.briefingMin)} before` }));
   if (l.debriefMin && !FAM()) chips.push(h('span', { class: 'chip', text: `Debrief ${fmtDur(l.debriefMin)} after` }));
   if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
-  const cs = callsignOf(l);
+  const cs = l.log ? null : callsignOf(l);
   if (cs) {
     const trk = (name, href) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${name}`, text: `Track on ${name}` });
     chips.push(trk('FlightAware', `https://flightaware.com/live/flight/${cs}`), trk('Flightradar24', `https://www.flightradar24.com/${cs}`));
@@ -1251,9 +1282,9 @@ function dutyCard(p, d, i) {
   const sv = view(d.start, S.mode);
   const kids = [
     h('div', { class: 'dh' }, h('h3', { text: `DUTY ${i + 1} OF ${p.duties.length}` }), h('span', { text: sv.date })),
-    h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation ? stCity(d.startStation) : ''}`.trim(), d.start), timeBlock(`Release ${d.endStation ? stCity(d.endStation) : ''}`.trim(), d.end)),
+    p.historic ? null : h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation ? stCity(d.startStation) : ''}`.trim(), d.start), timeBlock(`Release ${d.endStation ? stCity(d.endStation) : ''}`.trim(), d.end)),
     FAM() ? null : h('div', { class: 'chips', style: 'margin-top:0' },
-      h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
+      p.historic ? null : h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
       d.flightMinutes != null ? h('span', { class: 'chip', text: `Flight time ${fmtDur(d.flightMinutes)}` }) : null)
   ];
   if (d.crew && d.crew.length && !FAM()) {
@@ -1319,9 +1350,9 @@ function applyActive(root, p) {
   (lm || el).prepend(b);
   return el;
 }
-function openPairing(key, scrollDay, centerNow) {
+function openPairing(key, scrollDay, centerNow, forceSheet) {
   const urls = [];
-  const wide = isWide();
+  const wide = isWide() && !forceSheet;
   const onClose = () => urls.splice(0).forEach(u => URL.revokeObjectURL(u));
   let sheet, scroller;
   if (wide) { sheet = takePane(onClose); scroller = paneEl; S.sel = key; S.selDay = scrollDay || null; markSel(); }
@@ -1350,7 +1381,7 @@ function openPairing(key, scrollDay, centerNow) {
         h('div', { class: 'stat' }, h('span', { text: 'Flight time' }), h('b', { text: flight ? fmtDur(flight) : '–' })),
         h('div', { class: 'stat' }, h('span', { text: 'Duties' }), h('b', { text: String(p.duties.length) })),
         h('div', { class: 'stat' }, h('span', { text: 'Layovers' }), h('b', { text: String(p.duties.filter(d => d.rest).length) }))),
-      h('div', { class: 'small muted gen', style: 'margin-top:10px', text: `Schedule generated ${gen.date} ${gen.time} UTC` }),
+      h('div', { class: 'small muted gen', style: 'margin-top:10px', text: p.historic ? 'From your logbook. Report and release times were not recorded, so each duty runs from the first departure to the last arrival.' : `Schedule generated ${gen.date} ${gen.time} UTC` }),
       p.prev ? h('div', { class: 'notice', text: `Revised when imported ${labelKey(keyOf(Date.parse(p.revisedAt), S.baseTz))}. The earlier version was generated ${(() => { const g = view({ t: p.prev.snapshot.generatedUtc || p.prev.replacedAt, tz: 'UTC' }, 'utc'); return `${g.date} ${g.time} UTC`; })()}.` }) : null);
     if (FAM()) head.querySelectorAll('.stats,.notice,.gen').forEach(e => e.remove());
     body.push(head);
@@ -1529,6 +1560,23 @@ function openDay(key, items) {
       seg(MODES(), S.mode, m => { setMode(m); if (wide) { render(); openDay(key, items); } else { closeSheet(); render(); } })),
     h('div', { class: 'sheet-body' }, items.map(p => agendaRow(p, () => openPairing(p.key, key, key === keyOf(Date.now(), S.baseTz))))));
 }
+function openMonthPicker() {
+  const sheet = openSheet('mp');
+  const have = new Set();
+  S.pairings.forEach(p => { have.add(keyOf(pS(p), S.baseTz).slice(0, 7)); have.add(keyOf(pE(p) - 1, S.baseTz).slice(0, 7)); });
+  S.days.forEach(d => have.add(d.date.slice(0, 7)));
+  const thisY = +keyOf(Date.now(), S.baseTz).slice(0, 4);
+  const ys = new Set([S.month.y, thisY, thisY + 1]); have.forEach(k => ys.add(+k.slice(0, 4)));
+  const years = [...ys].sort((a, b) => a - b);
+  let y = S.month.y;
+  const MN = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2000, i, 1)).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }));
+  const body = h('div', { class: 'sheet-body' });
+  const draw = () => body.replaceChildren(
+    h('div', { class: 'mp-years' }, years.map(yy => h('button', { type: 'button', class: 'mp-y' + (yy === y ? ' on' : '') + ([...have].some(k => +k.slice(0, 4) === yy) ? '' : ' none'), onclick: () => { y = yy; draw(); }, text: String(yy) }))),
+    h('div', { class: 'mp-months' }, MN.map((nm, i) => h('button', { type: 'button', class: 'mp-m' + (have.has(`${y}-${pad(i + 1)}`) ? ' has' : '') + (y === S.month.y && i === S.month.m ? ' cur' : ''), onclick: () => { S.month = { y, m: i }; closeSheet(); render(); }, text: nm }))));
+  draw();
+  sheet.append(h('div', { class: 'sheet-head' }, h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')), h('div', { class: 'sheet-title', text: 'Jump to month' })), body);
+}
 function shiftMonth(n) {
   const d = new Date(Date.UTC(S.month.y, S.month.m + n, 1));
   S.month = { y: d.getUTCFullYear(), m: d.getUTCMonth() };
@@ -1553,6 +1601,7 @@ function gridEl() {
 }
 function render() {
   glRefresh();
+  syncTabs();
   const app = document.getElementById('app');
   const nx = upcoming();
   S.nextKey = nx ? nx.key : null;
@@ -1568,7 +1617,7 @@ function render() {
   const title = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   const kids = [
     h('header', { class: 'top' },
-      h('div', { class: 'tl' }, h('h1', {}, 'CJT Schedule', FAM() ? h('small', { text: 'Family view' }) : null)),
+      h('div', { class: 'tl' }, h('h1', {}, 'Ashley Aloft', FAM() ? h('small', { text: 'Family view' }) : null)),
       h('button', { type: 'button', class: 'iconbtn', id: 'refreshbtn', 'aria-label': 'Refresh from the internet', onclick: hardRefresh }, icon('refresh')),
       h('div', { class: 'tr' },
         ready ? h('span', { class: 'pill off', title: 'Offline ready', text: 'Offline ready' }) : null,
@@ -1584,7 +1633,7 @@ function render() {
   kids.push(
     h('div', { class: 'monthbar' },
       h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Previous month', onclick: () => shiftMonth(-1) }, icon('left')),
-      h('h2', { text: title }),
+      h('h2', {}, h('button', { type: 'button', class: 'mtitle', 'aria-label': 'Jump to a month and year', onclick: openMonthPicker, text: title })),
       h('button', { type: 'button', class: 'todaybtn', onclick: () => { const k = keyOf(Date.now(), S.baseTz); S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 }; render(); }, text: 'Today' }),
       h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Next month', onclick: () => shiftMonth(1) }, icon('right'))),
     h('div', { class: 'week' }, DOW.map(d => h('div', { text: d }))),
@@ -1759,6 +1808,114 @@ async function openSettings() {
   if (FAM()) sheet.querySelectorAll('.full-only').forEach(e => e.remove());
 }
 
+/* ---------- pilots screen: everyone you have flown with ---------- */
+let pl = null;
+const nameKey = n => String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
+const normQ = q => String(q).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean);
+function pilotIndex() {
+  const map = new Map();
+  const add = (c, p, di, li, l) => {
+    if (!c || !c.name || isMe(c)) return;
+    const k = nameKey(c.name); if (!k) return;
+    let e = map.get(k);
+    if (!e) { e = { key: k, forms: new Map(), legs: [] }; map.set(k, e); }
+    e.forms.set(c.name, (e.forms.get(c.name) || 0) + 1);
+    if (!e.legs.some(x => x.p === p && x.di === di && x.li === li)) e.legs.push({ p, di, li, l, role: c.role || '', sim: l.kind === 'event' });
+  };
+  for (const p of S.pairings) {
+    p.duties.forEach((d, di) => (d.legs || []).forEach((l, li) => {
+      if (l.kind !== 'flight' && l.kind !== 'event') return;
+      const list = Array.isArray(l.crew) ? l.crew : [...(d.crew || []), ...(p.crew || [])];
+      const seen = new Set();
+      list.forEach(c => { if (c && c.name && !seen.has(nameKey(c.name))) { seen.add(nameKey(c.name)); add(c, p, di, li, l); } });
+    }));
+  }
+  const out = [];
+  for (const e of map.values()) {
+    e.name = [...e.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length)[0][0];
+    const parts = e.name.trim().split(/\s+/); e.last = parts[parts.length - 1]; e.sortKey = (e.last + ' ' + e.name).toLowerCase();
+    e.flights = e.legs.filter(x => !x.sim).length; e.sims = new Set(e.legs.filter(x => x.sim).map(x => x.p.key)).size;
+    e.minutes = e.legs.filter(x => !x.sim).reduce((a, x) => a + (x.l.minutes || 0), 0);
+    const ts = e.legs.map(x => Date.parse(x.l.out.t)); e.first = Math.min(...ts); e.last_t = Math.max(...ts);
+    out.push(e);
+  }
+  return out.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+}
+const fmtLongDate = ms => new Date(ms).toLocaleDateString('en-CA', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', timeZone: S.baseTz });
+function openPilot(e) {
+  const sheet = openSheet('pl');
+  const days = new Set(e.legs.map(x => keyOf(Date.parse(x.l.out.t), S.baseTz)));
+  const roles = {}; e.legs.filter(x => !x.sim).forEach(x => { roles[x.role || '?'] = (roles[x.role || '?'] || 0) + 1; });
+  const ROLEN = { CA: 'Captain', FO: 'First Officer', RP: 'Relief Pilot', CP: 'Check Pilot', SI: 'Simulator Instructor', '?': 'Role not recorded' };
+  const places = new Map();
+  e.legs.filter(x => !x.sim).forEach(x => { for (const c of new Set([x.l.from, x.l.to])) places.set(c, (places.get(c) || 0) + 1); });
+  const top = [...places.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const byP = new Map();
+  e.legs.forEach(x => { const k = x.p.key; if (!byP.has(k)) byP.set(k, { p: x.p, legs: [] }); byP.get(k).legs.push(x); });
+  const groups = [...byP.values()].sort((a, b) => Date.parse(b.legs[0].l.out.t) - Date.parse(a.legs[0].l.out.t));
+  const kids = [];
+  let year = null;
+  const yc = {}; groups.forEach(g => { const y = keyOf(Date.parse(g.legs[0].l.out.t), S.baseTz).slice(0, 4); yc[y] = (yc[y] || 0) + g.legs.filter(x => !x.sim).length; });
+  groups.forEach(g => {
+    g.legs.sort((a, b) => Date.parse(a.l.out.t) - Date.parse(b.l.out.t));
+    const t0 = Date.parse(g.legs[0].l.out.t), dayKey = keyOf(t0, S.baseTz), y = dayKey.slice(0, 4);
+    if (y !== year) { year = y; kids.push(h('div', { class: 'pl-year', text: `${y} · ${yc[y]} flight${yc[y] === 1 ? '' : 's'}` })); }
+    const sim = g.legs.every(x => x.sim);
+    const r = []; g.legs.forEach(x => { if (!r.length) r.push(x.l.from); if (r[r.length - 1] !== x.l.from) r.push(x.l.from); if (r[r.length - 1] !== x.l.to) r.push(x.l.to); });
+    const rl = [...new Set(g.legs.map(x => x.role).filter(Boolean))].map(c => ROLEN[c] || c);
+    const ty = [...new Set(g.legs.map(x => x.l.aircraft && x.l.aircraft.type).filter(Boolean))];
+    kids.push(h('button', { type: 'button', class: 'pl-leg' + (sim ? ' sim' : ''), onclick: () => openPairing(g.p.key, dayKey, false, true) },
+      h('div', { class: 'd' }, h('span', { text: fmtLongDate(t0) }), h('span', { text: sim ? 'Simulator' : `Pairing ${g.p.id}` })),
+      h('div', { class: 'r', text: sim ? (g.legs[0].l.desc || 'Simulator') + ' · ' + (g.legs[0].l.flight || '') : r.length > 7 ? ([...new Set(r)].length <= 4 ? 'Shuttle ' + [...new Set(r)].join(' · ') : r.slice(0, 3).join(' › ') + ' › … › ' + r[r.length - 1]) : r.join(' › ') }),
+      h('div', { class: 'm', text: [rl.length ? `They were ${rl.join(' / ')}` : null, ty.join(', ') || null, sim ? null : `${g.legs.length} leg${g.legs.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ') })));
+  });
+  sheet.append(
+    h('div', { class: 'sheet-head' }, h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')), h('div', { class: 'sheet-title', text: e.name })),
+    h('div', { class: 'sheet-body' },
+      h('div', { class: 'stats', style: 'margin-top:0' },
+        h('div', { class: 'stat' }, h('span', { text: 'Flights together' }), h('b', { text: String(e.flights) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Flight time' }), h('b', { text: e.minutes ? fmtDur(e.minutes) : '–' })),
+        h('div', { class: 'stat' }, h('span', { text: 'First flown' }), h('b', { text: fmtLongDate(e.first) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Last flown' }), h('b', { text: fmtLongDate(e.last_t) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Days together' }), h('b', { text: String(days.size) })),
+        h('div', { class: 'stat' }, h('span', { text: 'Simulator sessions' }), h('b', { text: String(e.sims) }))),
+      Object.keys(roles).length ? h('div', { class: 'small muted', style: 'margin-top:10px', text: 'Their role on your flights: ' + Object.entries(roles).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${ROLEN[k] || k} ${v}`).join(', ') }) : null,
+      top.length ? h('div', { class: 'pl-tags' }, top.map(([c, n]) => h('span', { class: 'chip', text: `${c} · ${n}` }))) : null,
+      ...kids));
+}
+function plBuild() {
+  const root = h('div', { id: 'pilots', 'aria-label': 'Pilots' });
+  const wrap = h('div', { class: 'pl-wrap' });
+  const title = h('h1', {}, 'Pilots');
+  const search = h('input', { type: 'search', class: 'pl-search', placeholder: 'Search by name', 'aria-label': 'Search pilots', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', oninput: () => draw() });
+  const list = h('div', { class: 'pl-list' });
+  wrap.append(h('div', { class: 'pl-top' }, title, search), list);
+  root.append(wrap);
+  document.body.append(root);
+  let idx = [];
+  function draw() {
+    const keep = root.scrollTop;
+    idx = pilotIndex();
+    const q = normQ(search.value);
+    const rows = q.length ? idx.filter(e => q.every(t => e.key.includes(t))) : idx;
+    title.replaceChildren('Pilots', h('small', { text: q.length ? `${rows.length} of ${idx.length}` : `${idx.length} flown with` }));
+    list.replaceChildren();
+    if (!idx.length) { list.append(h('div', { class: 'pl-empty', text: 'No crew names yet. Add the history files to your data repository and sync.' })); return; }
+    if (!rows.length) { list.append(h('div', { class: 'pl-empty', text: 'No one by that name.' })); return; }
+    let L = '';
+    for (const e of rows) {
+      const ch = (e.last[0] || '#').toUpperCase();
+      if (!q.length && ch !== L) { L = ch; list.append(h('div', { class: 'pl-letter', text: ch })); }
+      const fy = new Date(e.first).getUTCFullYear(), ly = new Date(e.last_t).getUTCFullYear();
+      list.append(h('button', { type: 'button', class: 'pl-row', onclick: () => openPilot(e) },
+        h('span', {}, h('span', { class: 'n', text: e.name }), h('span', { class: 's', text: `${fy === ly ? fy : fy + ' to ' + ly}${e.sims && !e.flights ? ' · simulator only' : ''}` })),
+        h('span', { class: 'c', text: e.flights ? `${e.flights} flight${e.flights === 1 ? '' : 's'}` : `${e.sims} sim${e.sims === 1 ? '' : 's'}` })));
+    }
+    root.scrollTop = keep;
+  }
+  pl = { root, draw };
+}
+
 /* ---------- globe screen and tab bar ---------- */
 let gl = null;
 const fmtN = n => Math.round(n).toLocaleString('en-CA');
@@ -1810,6 +1967,7 @@ function glRefresh() {
   gl.ver = S.lbVer; gl.G.setData(glData()); gl.drawUI(); gl.showInfo(gl.G.S.sel);
 }
 function setTab(t) {
+  if (t === 'pilots' && FAM()) t = 'schedule';
   if (t === 'globe' && !gl) glBuild();
   S.tab = t;
   document.querySelectorAll('#tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.t === t ? 'page' : 'false'));
@@ -1817,11 +1975,19 @@ function setTab(t) {
     if (t === 'globe') { glRefresh(); gl.root.style.display = 'block'; gl.G.resume(); }
     else { gl.root.style.display = 'none'; gl.G.pause(); }
   }
+  if (t === 'pilots') { if (!pl) plBuild(); pl.draw(); pl.root.style.display = 'block'; }
+  else if (pl) pl.root.style.display = 'none';
   if (t === 'schedule') render();
+}
+function syncTabs() {
+  const b = document.querySelector('#tabbar button[data-t="pilots"]');
+  if (b) b.style.display = FAM() ? 'none' : '';
+  if (FAM() && S.tab === 'pilots') { S.tab = 'schedule'; document.querySelectorAll('#tabbar button').forEach(x => x.setAttribute('aria-current', x.dataset.t === 'schedule' ? 'page' : 'false')); if (pl) pl.root.style.display = 'none'; }
+  else if (pl && S.tab === 'pilots') pl.draw();
 }
 function buildTabBar() {
   const mk = (t, ic, label) => h('button', { type: 'button', 'data-t': t, 'aria-current': t === S.tab ? 'page' : 'false', onclick: () => setTab(t) }, icon(ic, 24), label);
-  document.body.append(h('nav', { class: 'tabbar', id: 'tabbar', 'aria-label': 'Main' }, mk('schedule', 'calendar', 'Schedule'), mk('globe', 'globe', 'Globe')));
+  document.body.append(h('nav', { class: 'tabbar', id: 'tabbar', 'aria-label': 'Main' }, mk('schedule', 'calendar', 'Schedule'), mk('globe', 'globe', 'Globe'), mk('pilots', 'users', 'Pilots')));
 }
 
 /* ---------- boot ---------- */
@@ -1850,7 +2016,7 @@ async function init() {
   S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 };
   buildTabBar();
   render();
-  try { if (new URLSearchParams(location.search).get('tab') === 'globe') setTab('globe'); } catch { /* ignore */ }
+  try { const tq = new URLSearchParams(location.search).get('tab'); if (tq === 'globe' || tq === 'pilots') setTab(tq); } catch { /* ignore */ }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (!sheets.length) render(); });
     navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching unavailable */ });
