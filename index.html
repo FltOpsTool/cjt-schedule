@@ -320,6 +320,11 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 }
 @media (max-height:520px) and (orientation:landscape){.gl-ctl{top:calc(56px + env(safe-area-inset-top))}}
 @media (min-width:900px){.app.wide{padding-bottom:var(--tabh)}.layout{min-height:calc(100vh - var(--tabh));min-height:calc(100dvh - var(--tabh))}.pane{height:calc(100vh - var(--tabh));height:calc(100dvh - var(--tabh))}}
+.now-active{outline:3px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 7px rgba(79,195,220,.16)}
+.now-duty{box-shadow:inset 0 0 0 2px var(--next-line)}
+.nowb{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:12px;letter-spacing:.04em;padding:4px 10px;border-radius:999px;margin:0 0 8px;line-height:1.25}
+.gap.now-active{border-radius:10px;padding:8px 10px}
+.route-names{font-size:14px;color:var(--muted);margin:2px 0 8px}
 </style>
 </head>
 <body>
@@ -565,7 +570,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.7.2';
+const APP_VERSION = '1.9.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -588,7 +593,7 @@ const S = {
   view: 'full',
   sync: { repo: 'FltOpsTool/cjt-schedule-data', token: '', last: null, shas: {}, error: '' },
   nextKey: null, nextDays: new Set(), nextStarted: false, nextMark: null,
-  pairings: [], days: [], shots: [], logbook: { airports: {}, legs: [] }, lbVer: 0, tab: 'schedule',
+  pairings: [], days: [], shots: [], logbook: { airports: {}, legs: [] }, stations: {}, lbVer: 0, tab: 'schedule',
   me: { name: '', id: '' }, baseTz: 'America/Toronto',
   mode: 'local', theme: 'auto', sel: null, selDay: null, autoDone: false, paneClose: null, month: { y: 2026, m: 9 },
   db: null, dbError: null, memId: 0, persisted: null, installEvt: null
@@ -766,6 +771,7 @@ async function loadAll() {
   for (const m of meta) {
     if (m.k === 'me' && m.v) S.me = m.v;
     if (m.k === 'baseTz' && m.v) S.baseTz = m.v;
+    if (m.k === 'stations' && m.v && typeof m.v === 'object') S.stations = m.v;
     if (m.k === 'logbook' && m.v && m.v.legs) S.logbook = { airports: m.v.airports || {}, legs: m.v.legs };
     if (m.k === 'sync' && m.v) S.sync = { ...S.sync, ...m.v, shas: m.v.shas || {} };
   }
@@ -798,6 +804,10 @@ function validate(o) {
   if (o.baseTz && !validTz(o.baseTz)) errs.push(`Unknown base time zone "${o.baseTz}"`);
   if (o.pairings != null && !Array.isArray(o.pairings)) errs.push('"pairings" must be a list.');
   if (o.days != null && !Array.isArray(o.days)) errs.push('"days" must be a list.');
+  if (o.stations != null) {
+    if (typeof o.stations !== 'object' || Array.isArray(o.stations)) errs.push('"stations" must be an object of airport code to place name.');
+    else for (const [k, v] of Object.entries(o.stations)) if (!/^[A-Z0-9]{3,4}$/.test(k) || typeof v !== 'string' || !v.trim() || v.length > 60) errs.push(`Station ${k}: needs a code and a short place name`);
+  }
   (Array.isArray(o.pairings) ? o.pairings : []).forEach((p, i) => {
     const w = `Pairing ${p && p.id ? p.id : '#' + (i + 1)}`;
     if (!p || typeof p.id !== 'string' || !p.id) { errs.push(`${w}: missing id`); return; }
@@ -873,6 +883,11 @@ async function importData(o, mode) {
       rec.id = id ?? ++S.memId; S.shots.push(rec); res.shots++;
     } catch { /* skip bad image */ }
   }
+  if (o.stations && typeof o.stations === 'object') {
+    let ch = false;
+    for (const [k, v] of Object.entries(o.stations)) if (S.stations[k] !== v) { S.stations[k] = v; ch = true; }
+    if (ch) await dbPut('meta', { k: 'stations', v: S.stations });
+  }
   if (o.me && o.me.name) S.me = o.me;
   if (o.baseTz) S.baseTz = o.baseTz;
   await saveMeta();
@@ -921,7 +936,7 @@ function blobToDataURL(b) {
   return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 }
 async function exportBackup(withShots) {
-  const out = { format: 'cjt-schedule', version: 1, exportedAt: new Date().toISOString(), me: S.me, baseTz: S.baseTz, pairings: S.pairings, days: S.days };
+  const out = { format: 'cjt-schedule', version: 1, exportedAt: new Date().toISOString(), me: S.me, baseTz: S.baseTz, stations: S.stations, pairings: S.pairings, days: S.days };
   if (withShots) {
     out.screenshots = [];
     for (const s of S.shots) out.screenshots.push({ pairingKey: s.pairingKey, name: s.name, added: s.added, dataUrl: await blobToDataURL(s.blob) });
@@ -1035,6 +1050,9 @@ function pCode(p) {
   if (isSim(p)) return FAM() ? 'SIM' : [...new Set(legsOf(p).map(l => l.flight))].join('/');
   return p.id;
 }
+/* Family view only: plain place names instead of airport codes. */
+function stCity(c) { return FAM() && S.stations[c] ? S.stations[c].split(',')[0].trim() : c; }
+function stFull(c) { return S.stations[c] || c; }
 function routeOf(p) {
   const r = [];
   for (const l of legsOf(p)) {
@@ -1042,7 +1060,7 @@ function routeOf(p) {
     if (r[r.length - 1] !== l.from) r.push(l.from);
     if (r[r.length - 1] !== l.to) r.push(l.to);
   }
-  return r.join(' › ');
+  return r.map(stCity).join(' › ');
 }
 function otherCrew(p) {
   const s = new Set();
@@ -1181,6 +1199,7 @@ function legCard(l) {
     h('div', { class: 'lm' },
       h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: FAM() && l.kind === 'event' ? 'Simulator' : FAM() && l.kind === 'ground' ? '' : l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
       h('div', { class: 'route', text: route }),
+      FAM() && !isEv && l.from !== l.to && (S.stations[l.from] || S.stations[l.to]) ? h('div', { class: 'route-names', text: `${stFull(l.from)} to ${stFull(l.to)}` }) : null,
       h('div', { class: 'times' }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
       chips.length ? h('div', { class: 'chips' }, chips) : null));
 }
@@ -1195,12 +1214,12 @@ function callRow(label, name, num) {
     icon('phone', 20),
     h('span', {}, h('small', { text: `${label}: ${name}` }), h('span', { class: 'num', text: num })));
 }
-function restCard(r, duty, next) {
+function restCard(r, duty, next, restIdx) {
   const gapMin = next ? Math.round((Date.parse(next.start.t) - Date.parse(duty.end.t)) / MS) : null;
   const days = datesOf(Date.parse(duty.end.t), next ? Date.parse(next.start.t) : Date.parse(duty.end.t) + 1);
   const hotel = r.hotel || {}, tr = r.transport || {};
-  return h('div', { class: 'card rest', 'data-days': days.join(' ') },
-    h('div', { class: 'rh' }, icon('moon', 18), `REST · ${r.station || ''}`),
+  return h('div', { class: 'card rest', 'data-rest': String(restIdx), 'data-days': days.join(' ') },
+    h('div', { class: 'rh' }, icon('moon', 18), FAM() && r.station && S.stations[r.station] ? `Layover in ${S.stations[r.station]} (${r.station})` : `REST · ${r.station || ''}`),
     h('div', { class: 'rd', text: fmtDur(r.minutes) }),
     gapMin != null && gapMin !== r.minutes ? h('div', { class: 'warn', text: `Check: release to next report is ${fmtDur(gapMin)}.` }) : null,
     hotel.name ? h('div', { class: 'hn', text: hotel.name }) : null,
@@ -1213,7 +1232,7 @@ function dutyCard(p, d, i) {
   const sv = view(d.start, S.mode);
   const kids = [
     h('div', { class: 'dh' }, h('h3', { text: `DUTY ${i + 1} OF ${p.duties.length}` }), h('span', { text: sv.date })),
-    h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation || ''}`.trim(), d.start), timeBlock(`Release ${d.endStation || ''}`.trim(), d.end)),
+    h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation ? stCity(d.startStation) : ''}`.trim(), d.start), timeBlock(`Release ${d.endStation ? stCity(d.endStation) : ''}`.trim(), d.end)),
     FAM() ? null : h('div', { class: 'chips', style: 'margin-top:0' },
       h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
       d.flightMinutes != null ? h('span', { class: 'chip', text: `Flight time ${fmtDur(d.flightMinutes)}` }) : null)
@@ -1226,13 +1245,62 @@ function dutyCard(p, d, i) {
     const prev = d.legs[k - 1];
     if (prev && prev.to === l.from) {
       const g = Math.round((Date.parse(l.out.t) - Date.parse(prev.in.t)) / MS);
-      if (g > 0) kids.push(h('div', { class: 'gap', text: `Ground time ${fmtDur(g)} at ${prev.to}` }));
+      if (g > 0) kids.push(h('div', { class: 'gap', 'data-gap': `${i}-${k}`, text: FAM() && S.stations[prev.to] ? `Ground time ${fmtDur(g)} in ${stCity(prev.to)}` : `Ground time ${fmtDur(g)} at ${prev.to}` }));
     }
-    kids.push(legCard(l));
+    const lc = legCard(l); lc.setAttribute('data-leg', `${i}-${k}`);
+    kids.push(lc);
   });
-  return h('div', { class: 'card duty', 'data-days': days.join(' ') }, kids);
+  return h('div', { class: 'card duty', 'data-duty': String(i), 'data-days': days.join(' ') }, kids);
 }
-function openPairing(key, scrollDay) {
+/* Which part of a pairing is happening right now: a leg, ground time, the layover, or on duty between legs. */
+function activeSeg(p, now) {
+  for (let i = 0; i < p.duties.length; i++) {
+    const d = p.duties[i], ds = Date.parse(d.start.t), de = Date.parse(d.end.t);
+    if (now >= ds && now < de) {
+      const L = d.legs || [];
+      for (let k = 0; k < L.length; k++) {
+        const o = Date.parse(L[k].out.t), n = Date.parse(L[k].in.t);
+        if (now >= o && now < n) return { sel: `[data-leg="${i}-${k}"]`, duty: i, kind: L[k].kind, until: n };
+        const nx = L[k + 1];
+        if (nx && now >= n && now < Date.parse(nx.out.t)) return { sel: `[data-gap="${i}-${k + 1}"]`, duty: i, kind: 'gap', until: Date.parse(nx.out.t), at: L[k].to };
+      }
+      if (L.length && now < Date.parse(L[0].out.t)) return { sel: `[data-duty="${i}"]`, duty: i, kind: 'pre', until: Date.parse(L[0].out.t) };
+      return { sel: `[data-duty="${i}"]`, duty: i, kind: 'post', until: de };
+    }
+    const nd = p.duties[i + 1];
+    if (d.rest && nd && now >= de && now < Date.parse(nd.start.t)) return { sel: `[data-rest="${i}"]`, duty: i, kind: 'rest', until: Date.parse(nd.start.t), at: d.rest.station || d.endStation };
+  }
+  return null;
+}
+function nowLabel(sg, now) {
+  const rem = countdown(Math.max(MS, sg.until - now));
+  switch (sg.kind) {
+    case 'flight': return `IN FLIGHT · lands ${rem}`;
+    case 'deadhead': return `POSITIONING · lands ${rem}`;
+    case 'ground': return `GROUND TRANSPORT · arrives ${rem}`;
+    case 'event': return `IN PROGRESS · ends ${rem}`;
+    case 'gap': return `GROUND TIME${sg.at ? ' · ' + stCity(sg.at) : ''} · departs ${rem}`;
+    case 'rest': return `LAYOVER${sg.at ? ' · ' + stCity(sg.at) : ''} · report ${rem}`;
+    case 'pre': return `ON DUTY · departs ${rem}`;
+    default: return `ON DUTY · release ${rem}`;
+  }
+}
+function applyActive(root, p) {
+  root.querySelectorAll('.now-active,.now-duty').forEach(e => e.classList.remove('now-active', 'now-duty'));
+  root.querySelectorAll('.nowb').forEach(e => e.remove());
+  const now = Date.now(), sg = activeSeg(p, now);
+  if (!sg) return null;
+  const duty = root.querySelector(`[data-duty="${sg.duty}"]`);
+  const el = root.querySelector(sg.sel) || duty;
+  if (!el) return null;
+  if (duty && duty !== el && sg.kind !== 'rest') duty.classList.add('now-duty');
+  el.classList.add('now-active');
+  const b = h('div', { class: 'nowb', role: 'status', text: 'NOW · ' + nowLabel(sg, now) });
+  const lm = el.classList.contains('leg-card') ? el.querySelector('.lm') : null;
+  (lm || el).prepend(b);
+  return el;
+}
+function openPairing(key, scrollDay, centerNow) {
   const urls = [];
   const wide = isWide();
   const onClose = () => urls.splice(0).forEach(u => URL.revokeObjectURL(u));
@@ -1277,7 +1345,7 @@ function openPairing(key, scrollDay) {
     }
     p.duties.forEach((d, i) => {
       body.push(dutyCard(p, d, i));
-      if (d.rest) body.push(restCard(d.rest, d, p.duties[i + 1]));
+      if (d.rest) body.push(restCard(d.rest, d, p.duties[i + 1], i));
     });
     const mine = S.shots.filter(s => s.pairingKey === key);
     const fileIn = h('input', { type: 'file', accept: 'image/*', multiple: true, onchange: async e => {
@@ -1316,9 +1384,19 @@ function openPairing(key, scrollDay) {
         seg(MODES(), S.mode, m => { setMode(m); draw(); render(); })),
       h('div', { class: 'sheet-body' }, FAM() ? body.filter(el => !el.classList.contains('full-only')) : body));
     scroller.scrollTop = top;
+    ACT = applyActive(sheet, p);
   };
+  let ACT = null;
   draw();
-  if (scrollDay) {
+  const tick = setInterval(() => {
+    if (!sheet.isConnected || (wide && S.sel !== key)) { clearInterval(tick); return; }
+    const pp = S.pairings.find(x => x.key === key); if (pp) applyActive(sheet, pp);
+  }, 30000);
+  if (centerNow && ACT) {
+    const head = sheet.querySelector('.sheet-head');
+    const r = ACT.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+    scroller.scrollTop += (r.top + r.height / 2) - (sr.top + sr.height / 2 + (head ? head.offsetHeight : 0) / 2);
+  } else if (scrollDay) {
     const target = [...sheet.querySelectorAll('[data-days]')].find(e => e.dataset.days.split(' ').includes(scrollDay));
     if (target) {
       if (wide) scroller.scrollTop = Math.max(0, target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - sheet.querySelector('.sheet-head').offsetHeight - 8);
@@ -1362,7 +1440,7 @@ function nextCard() {
   if (!up) return null;
   const started = pS(up) <= now;
   const v = view(up.duties[0].start, S.mode);
-  return h('button', { type: 'button', class: 'next', onclick: () => openPairing(up.key) },
+  return h('button', { type: 'button', class: 'next', onclick: () => openPairing(up.key, null, true) },
     h('div', { class: 'next-k' }, h('span', { text: started ? 'IN PROGRESS' : 'NEXT DUTY' }), h('span', { class: 'cd', 'data-st': started ? '' : String(pS(up)), text: started ? '' : countdown(pS(up) - now) })),
     h('div', { class: 'next-t', text: `${pCode(up)}  ·  Report ${v.date} ${v.time} ${v.ab}` }),
     h('div', { class: 'next-r', text: routeOf(up) }));
@@ -1416,7 +1494,7 @@ function dayHours(d) {
 }
 function onCellTap(key) {
   const items = S.pairings.filter(p => hasDay(p, key));
-  if (items.length === 1) return openPairing(items[0].key, key);
+  if (items.length === 1) return openPairing(items[0].key, key, key === keyOf(Date.now(), S.baseTz));
   if (items.length > 1) return openDay(key, items);
   const day = S.days.find(d => d.date === key);
   toast(day ? `${labelKey(key)}: ${day.label || day.type}${dayHours(day)}` : `${labelKey(key)}: no duty on file`);
@@ -1430,7 +1508,7 @@ function openDay(key, items) {
       wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
       h('div', { class: 'sheet-title', text: labelKey(key) }),
       seg(MODES(), S.mode, m => { setMode(m); if (wide) { render(); openDay(key, items); } else { closeSheet(); render(); } })),
-    h('div', { class: 'sheet-body' }, items.map(p => agendaRow(p, () => openPairing(p.key, key)))));
+    h('div', { class: 'sheet-body' }, items.map(p => agendaRow(p, () => openPairing(p.key, key, key === keyOf(Date.now(), S.baseTz))))));
 }
 function shiftMonth(n) {
   const d = new Date(Date.UTC(S.month.y, S.month.m + n, 1));
@@ -1498,7 +1576,7 @@ function render() {
   if (!S.pairings.length && !S.days.length) {
     kids.push(h('div', { class: 'empty' }, h('p', { style: 'margin:0 0 12px', text: 'No schedule loaded yet.' }), h('button', { type: 'button', class: 'btn primary', onclick: openSettings, text: 'Import schedule file' })));
   } else if (inMonth.length) {
-    kids.push(h('div', { class: 'sect', text: 'Pairings and events this month' }), ...inMonth.map(p => agendaRow(p, () => openPairing(p.key))));
+    kids.push(h('div', { class: 'sect', text: 'Pairings and events this month' }), ...inMonth.map(p => agendaRow(p, () => openPairing(p.key, null, true))));
   }
   const wide = isWide();
   app.classList.toggle('wide', wide);
@@ -1508,7 +1586,7 @@ function render() {
     if (!S.autoDone && S.pairings.length) {
       S.autoDone = true;
       const up = upcoming();
-      if (up) { const started = pS(up) <= Date.now(); openPairing(up.key, keyOf(started ? Date.now() : pS(up), S.baseTz)); }
+      if (up) { const started = pS(up) <= Date.now(); openPairing(up.key, keyOf(started ? Date.now() : pS(up), S.baseTz), started); }
     }
     markSel();
   } else {
@@ -1654,8 +1732,8 @@ async function openSettings() {
       h('div', { class: 'full-only', style: 'text-align:center' },
         h('button', { type: 'button', class: 'btn danger', onclick: async () => {
           if (!confirm('Delete ALL pairings, days, screenshots and the flight log from this device? This cannot be undone.')) return;
-          await dbClear('pairings'); await dbClear('days'); await dbClear('shots'); await dbDel('meta', 'logbook');
-          S.pairings = []; S.days = []; S.shots = []; S.logbook = { airports: {}, legs: [] }; S.lbVer++;
+          await dbClear('pairings'); await dbClear('days'); await dbClear('shots'); await dbDel('meta', 'logbook'); await dbDel('meta', 'stations');
+          S.pairings = []; S.days = []; S.shots = []; S.logbook = { airports: {}, legs: [] }; S.stations = {}; S.lbVer++;
           S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
           closeSheet(); render(); toast('All data deleted');
         } }, icon('trash', 18), 'Delete all data'))));

@@ -119,3 +119,9 @@ Phone numbers (`hotel.phone`, `transport.phone`) must include the country code, 
 Each leg is [departure in UTC, from, to, aircraft type, block hours]. Every airport used must have coordinates in `airports` (from this file or an earlier one). No crew names or registrations are stored.
 
 Day mode uses a separate set of day icons (`icons/duty-*-day.png`, transparent background so they sit cleanly on the light calendar). Night mode keeps the dark set. The switch follows the theme button, with no reload.
+
+## Now marker (1.8.0)
+When a pairing is in progress, the part happening right now (a leg, ground time, the layover, or on duty between legs) gets an outline and a NOW badge with the time left, for example "NOW · LAYOVER · EGNX · report in 22h 20m". Tapping the pairing row, the in-progress card, or today's calendar cell centres that part on screen. Tapping any other day still scrolls to that day. The badge refreshes every 30 seconds while the pairing is open.
+
+## Place names in Family view (1.9.0)
+Family view shows plain place names next to airport codes: city names in the route lines, "Cincinnati, Kentucky to East Midlands, England" under each leg, and "Layover in East Midlands, England (EGNX)". Full view is unchanged. Names come from an optional `"stations": { "KCVG": "Cincinnati, Kentucky" }` object in the monthly JSON. The app remembers every name it has seen, so a later month also names airports from earlier ones. Airports without a name keep showing the code. Format: city and province or state for Canada and the US, city and England, Scotland, Wales or Northern Ireland for the UK, city and country elsewhere.
