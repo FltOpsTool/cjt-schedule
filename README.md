@@ -2,6 +2,8 @@
 
 Offline crew schedule and pairing viewer for a phone. Calendar view, tap a day for the full pairing: report and release, legs, aircraft, crew, hotels, phone numbers, booking locators.
 
+**Leg tile layout (1.9.2).** In Family view a flight tile shows the departure code on the left, an arrow in the centre and the arrival code on the right, with each airport's name directly under its own code (long names wrap inside their column). An airport without a name shows the code only. Full view, simulator and event tiles are unchanged.
+
 ## Privacy
 
 This repository holds the app only. It contains no schedule data. Your pairings live in your phone's browser storage (IndexedDB) and are never uploaded.
