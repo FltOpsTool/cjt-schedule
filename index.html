@@ -570,7 +570,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.9.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -775,6 +775,11 @@ async function loadAll() {
     if (m.k === 'logbook' && m.v && m.v.legs) S.logbook = { airports: m.v.airports || {}, legs: m.v.legs };
     if (m.k === 'sync' && m.v) S.sync = { ...S.sync, ...m.v, shas: m.v.shas || {} };
   }
+  /* After an app update, fetch every data file again once, so files an older version already saw are read with the new code. */
+  if (S.sync.appVer !== APP_VERSION) {
+    S.sync.shas = {}; S.sync.appVer = APP_VERSION;
+    try { await dbPut('meta', { k: 'sync', v: S.sync }); } catch { /* ignore */ }
+  }
 }
 async function saveMeta() {
   await dbPut('meta', { k: 'me', v: S.me });
@@ -840,7 +845,7 @@ function canon(p) {
 }
 function overlaps(a, b) { return pS(a) < pE(b) && pS(b) < pE(a); }
 async function importData(o, mode) {
-  const res = { added: 0, revised: [], same: 0, daysAdded: 0, daysChanged: 0, shots: 0, replaced: mode === 'replace' };
+  const res = { added: 0, revised: [], same: 0, daysAdded: 0, daysChanged: 0, stations: 0, shots: 0, replaced: mode === 'replace' };
   const now = new Date().toISOString();
   if (mode === 'replace') {
     await dbClear('pairings'); await dbClear('days');
@@ -885,7 +890,7 @@ async function importData(o, mode) {
   }
   if (o.stations && typeof o.stations === 'object') {
     let ch = false;
-    for (const [k, v] of Object.entries(o.stations)) if (S.stations[k] !== v) { S.stations[k] = v; ch = true; }
+    for (const [k, v] of Object.entries(o.stations)) if (S.stations[k] !== v) { S.stations[k] = v; ch = true; res.stations++; }
     if (ch) await dbPut('meta', { k: 'stations', v: S.stations });
   }
   if (o.me && o.me.name) S.me = o.me;
@@ -972,13 +977,14 @@ function syncSummary(r) {
   if (r.revised.length) parts.push(`${r.revised.length} revised (${r.revised.join(', ')})`);
   if (n) parts.push(`${n} day${n === 1 ? '' : 's'} updated`);
   if (r.legs) parts.push(`${r.legs} flight${r.legs === 1 ? '' : 's'} added to the log`);
+  if (r.stations) parts.push(`${r.stations} place name${r.stations === 1 ? '' : 's'} updated`);
   return parts.length ? parts.join(', ') : 'Already up to date';
 }
 let syncing = null;
 function syncNow() {
   if (syncing) return syncing;
   syncing = (async () => {
-    const out = { ok: false, files: 0, legs: 0, added: 0, revised: [], daysAdded: 0, daysChanged: 0, bad: [], text: '', status: 0 };
+    const out = { ok: false, files: 0, legs: 0, stations: 0, added: 0, revised: [], daysAdded: 0, daysChanged: 0, bad: [], text: '', status: 0 };
     try {
       if (!S.sync.token) throw Object.assign(new Error('No token saved'), { status: 401 });
       const list = await ghGet(`${GH_API}repos/${S.sync.repo}/contents/`);
@@ -997,7 +1003,7 @@ function syncNow() {
         const errs = validate(o);
         if (errs.length) { out.bad.push(`${f.name}: ${errs[0]}${errs.length > 1 ? ` (+${errs.length - 1} more)` : ''}`); continue; }
         const r = await importData(o, 'merge');
-        out.added += r.added; out.revised.push(...r.revised); out.daysAdded += r.daysAdded; out.daysChanged += r.daysChanged; out.files++;
+        out.added += r.added; out.revised.push(...r.revised); out.daysAdded += r.daysAdded; out.daysChanged += r.daysChanged; out.stations += r.stations; out.files++;
         S.sync.shas[f.name] = f.sha;
       }
       out.ok = true;
@@ -1014,7 +1020,8 @@ async function autoSync(force) {
   if (!force && S.sync.last && Date.now() - Date.parse(S.sync.last) < 10 * MS) return;
   const r = await syncNow();
   if (!r.ok) { if ([401, 403, 404].includes(r.status)) toast('Sync: ' + r.text); return; }
-  if (r.added || r.revised.length || r.daysAdded || r.daysChanged || r.legs) { render(); toast('Schedule updated: ' + syncSummary(r)); }
+  if (r.stations && !(r.added || r.revised.length || r.daysAdded || r.daysChanged || r.legs)) { render(); toast('Place names updated'); }
+  else if (r.added || r.revised.length || r.daysAdded || r.daysChanged || r.legs) { render(); toast('Schedule updated: ' + syncSummary(r)); }
   else if (r.bad.length) toast('Sync skipped ' + r.bad[0]);
 }
 

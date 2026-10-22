@@ -125,3 +125,5 @@ When a pairing is in progress, the part happening right now (a leg, ground time,
 
 ## Place names in Family view (1.9.0)
 Family view shows plain place names next to airport codes: city names in the route lines, "Cincinnati, Kentucky to East Midlands, England" under each leg, and "Layover in East Midlands, England (EGNX)". Full view is unchanged. Names come from an optional `"stations": { "KCVG": "Cincinnati, Kentucky" }` object in the monthly JSON. The app remembers every name it has seen, so a later month also names airports from earlier ones. Airports without a name keep showing the code. Format: city and province or state for Canada and the US, city and England, Scotland, Wales or Northern Ireland for the UK, city and country elsewhere.
+
+After any app update, the first sync reads every data file again (the app forgets which file versions it has already seen), so a file saved by an older version is never skipped.
