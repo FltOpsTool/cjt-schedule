@@ -2,7 +2,7 @@
 
 Offline crew schedule and pairing viewer for a phone. Calendar view, tap a day for the full pairing: report and release, legs, aircraft, crew, hotels, phone numbers, booking locators.
 
-**Leg tile layout (1.9.2).** In Family view a flight tile shows the departure code on the left, an arrow in the centre and the arrival code on the right, with each airport's name directly under its own code (long names wrap inside their column). An airport without a name shows the code only. Full view, simulator and event tiles are unchanged.
+**Leg tile layout (1.9.2).** In Family view a flight tile shows the departure code on the left, an arrow in the centre and the arrival code on the right, with each airport's name directly under its own code (long names wrap inside their column). An airport without a name shows the code only. Simulator and event tiles are unchanged. Since 1.13.0 Full view uses the same tile as Family view, with place names under each code when known. Since 1.12.1 the centre arrow is a drawn route line with a dot and arrowhead, and the arrival time block is right aligned under the arrival code.
 
 **Full flight log and new aircraft (1.10.0).** The flight log file can now carry `"replace": true`. When it does, importing it replaces the whole stored log instead of merging, so a rebuilt log fully overwrites an older one (legs that share a departure time are all kept). New fleet filters: BE1900 (green) and Light aircraft (purple: Cessna 150, 152, 172, Piper PA34, PA28). Aircraft types in the file are `757-200`, `767-200`, `767-300`, `BE1900`, `C150`, `C152`, `C172`, `PA34`, `PA28`. Flights that start and end at the same airport count in flights and hours but draw no arc.
 

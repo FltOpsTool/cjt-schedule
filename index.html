@@ -356,10 +356,13 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 .gap.now-active{border-radius:10px;padding:8px 10px}
 .route3{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:10px;margin:4px 0 10px}
 .route3 .rc{font-size:22px;font-weight:900;letter-spacing:.03em;line-height:1.15}
-.route3 .ra{font-size:22px;font-weight:900;line-height:1.15;color:var(--muted)}
+.route3 .ra{display:flex;align-items:center;height:25px;color:var(--accent)}
+.route3 .ra svg{width:84px;height:auto;display:block}
+.times.rt .tb:first-child{padding-left:0}
+.times.rt .tb:last-child{padding-right:0;text-align:right}
 .route3 .rn{font-size:13px;color:var(--muted);line-height:1.25;margin-top:3px}
 .route3 .r-r{text-align:right}
-@media (min-width:600px){.route3 .rc,.route3 .ra{font-size:26px}.route3 .rn{font-size:14px}}
+@media (min-width:600px){.route3 .rc{font-size:26px}.route3 .ra{height:30px}.route3 .ra svg{width:128px}.route3 .rn{font-size:14px}}
 </style>
 </head>
 <body>
@@ -606,7 +609,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.12.0';
+const APP_VERSION = '1.13.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1224,6 +1227,11 @@ function copyText(t) {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => toast(t));
   else toast(t);
 }
+function routeArrow() {
+  const a = h('div', { class: 'ra', 'aria-hidden': 'true' });
+  a.innerHTML = '<svg viewBox="0 0 100 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3.6" fill="currentColor" stroke="none"/><path d="M14 12H92"/><path d="M78 3l14 9-14 9"/></svg>';
+  return a;
+}
 function legCard(l) {
   const isEv = l.kind === 'event';
   const route = l.from === l.to ? l.from : `${l.from} → ${l.to}`;
@@ -1244,13 +1252,13 @@ function legCard(l) {
     h('div', { class: 'stripe' }),
     h('div', { class: 'lm' },
       h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: FAM() && l.kind === 'event' ? 'Simulator' : FAM() && l.kind === 'ground' ? '' : l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
-      FAM() && !isEv && l.from !== l.to && (S.stations[l.from] || S.stations[l.to])
+      !isEv && l.from !== l.to
         ? h('div', { class: 'route3' },
             h('div', { class: 'r-l' }, h('div', { class: 'rc', text: l.from }), S.stations[l.from] ? h('div', { class: 'rn', text: S.stations[l.from] }) : null),
-            h('div', { class: 'ra', 'aria-hidden': 'true', text: '→' }),
+            routeArrow(),
             h('div', { class: 'r-r' }, h('div', { class: 'rc', text: l.to }), S.stations[l.to] ? h('div', { class: 'rn', text: S.stations[l.to] }) : null))
         : h('div', { class: 'route', text: route }),
-      h('div', { class: 'times' }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
+      h('div', { class: 'times' + (!isEv && l.from !== l.to ? ' rt' : '') }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
       chips.length ? h('div', { class: 'chips' }, chips) : null));
 }
 /* Always dial with a country code. Numbers in the data should start with +. A bare 10 digit North American number gets +1 as a safety net. */
