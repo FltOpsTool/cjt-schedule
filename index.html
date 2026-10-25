@@ -673,7 +673,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.14.1';
+const APP_VERSION = '1.14.2';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1490,15 +1490,6 @@ function openPairing(key, scrollDay, centerNow, forceSheet) {
         const u = URL.createObjectURL(s.blob); urls.push(u);
         return h('button', { type: 'button', 'aria-label': `Open screenshot ${s.name || ''}`, onclick: () => openViewer(s, draw) }, h('img', { src: u, alt: s.name || 'screenshot', loading: 'lazy' }));
       })) : null));
-    body.push(h('div', { class: 'full-only', style: 'text-align:center;margin-top:20px' },
-      h('button', { type: 'button', class: 'btn danger', onclick: async () => {
-        if (!confirm(`Remove pairing ${p.id} and its screenshots from this device?`)) return;
-        S.pairings = S.pairings.filter(x => x.key !== key);
-        await dbDel('pairings', key);
-        for (const s of S.shots.filter(x => x.pairingKey === key)) await dbDel('shots', s.id);
-        S.shots = S.shots.filter(x => x.pairingKey !== key);
-        leave(); render(); toast('Pairing removed');
-      } }, icon('trash', 18), 'Remove pairing')));
     sheet.replaceChildren(
       h('div', { class: 'sheet-head' },
         wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
