@@ -27,6 +27,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --flight:#ffd400; --flight-ink:#14110a; --dead:#ff4fd8; --dead-ink:#14110a; --event:#b266ff; --event-ink:#12091c;
   --office:#d98a1b; --office-ink:#1b1200;
   --warn:#ff8a65; --ok:#58d68d;
+  --now:#ff7a1a; --now-ink:#1a0d00; --now-soft:rgba(255,122,26,.22);
   --inset:#0f1729; --head:#101a2c; --dim:#10182a;
   --ext:#26324a; --dutybar:#516080;
   --tag-bg:#243556; --tag-ink:#c8d6f0;
@@ -47,6 +48,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --flight:#c27d00; --flight-ink:#120b00; --dead:#c4188f; --dead-ink:#ffffff; --event:#7b1fe0; --event-ink:#ffffff;
   --office:#f0a53a; --office-ink:#2a1700;
   --warn:#b4400f; --ok:#15703f;
+  --now:#e8590c; --now-ink:#ffffff; --now-soft:rgba(232,89,12,.18);
   --inset:#f4f6fb; --head:#e6ebf4; --dim:#edf0f6;
   --ext:#c3cde0; --dutybar:#7a88a8;
   --tag-bg:#dde5f4; --tag-ink:#243556;
@@ -350,14 +352,39 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 }
 @media (max-height:520px) and (orientation:landscape){.gl-ctl{top:calc(56px + env(safe-area-inset-top))}}
 @media (min-width:900px){.app.wide{padding-bottom:var(--tabh)}.layout{min-height:calc(100vh - var(--tabh));min-height:calc(100dvh - var(--tabh))}.pane{height:calc(100vh - var(--tabh));height:calc(100dvh - var(--tabh))}}
-.now-active{outline:3px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 7px rgba(79,195,220,.16)}
-.now-duty{box-shadow:inset 0 0 0 2px var(--next-line)}
-.nowb{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:12px;letter-spacing:.04em;padding:4px 10px;border-radius:999px;margin:0 0 8px;line-height:1.25}
+.now-active{outline:3px solid var(--now);outline-offset:2px;box-shadow:0 0 0 7px var(--now-soft);border-radius:12px}
+.now-active.now-flash{animation:nowflash 1.9s ease-in-out}
+@keyframes nowflash{
+  0%{outline-color:var(--now);box-shadow:0 0 0 7px var(--now-soft)}
+  12%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
+  26%{outline-color:var(--now);box-shadow:0 0 0 12px var(--now-soft)}
+  40%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
+  54%{outline-color:var(--now);box-shadow:0 0 0 12px var(--now-soft)}
+  68%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
+  100%{outline-color:var(--now);box-shadow:0 0 0 7px var(--now-soft)}
+}
+@media (prefers-reduced-motion:reduce){.now-active.now-flash{animation:none}}
+.now-duty{box-shadow:inset 0 0 0 2px var(--now);border-radius:12px}
+.nowb{display:inline-block;background:var(--now);color:var(--now-ink);font-weight:800;font-size:12px;letter-spacing:.04em;padding:4px 10px;border-radius:999px;margin:0 0 8px;line-height:1.25}
+.legfam{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:10px;margin:4px 0 0}
+.legfam .ra{display:flex;align-items:center;height:26px;color:var(--accent)}
+.legfam .ra svg{width:72px;height:auto;display:block}
+.lf-s .lf-ct{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lf-s .lf-c{font-size:22px;font-weight:900;letter-spacing:.03em;line-height:1.1}
+.lf-s .lf-t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.lf-s .lf-when{font-size:12px;color:var(--muted);font-weight:700}
+.lf-s .lf-n{font-size:13px;color:var(--muted);line-height:1.25;margin-top:3px}
+.lf-r{text-align:right}.lf-r .lf-ct{justify-content:flex-end}
+.lf-home{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ok)}
+.tripsum{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:8px;font-weight:800}
+.tripsum .ts-home{color:var(--ok)}
+.upd{font-size:11px;color:var(--muted);font-weight:600;align-self:center;white-space:nowrap}
 .gap.now-active{border-radius:10px;padding:8px 10px}
 .route3{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:10px;margin:4px 0 10px}
 .route3 .rc{font-size:22px;font-weight:900;letter-spacing:.03em;line-height:1.15}
-.route3 .ra{display:flex;align-items:center;height:25px;color:var(--accent)}
+.route3 .ra,.legfam .ra{display:flex;align-items:center;height:25px;color:var(--accent)}
 .route3 .ra svg{width:84px;height:auto;display:block}
+@media (min-width:600px){.legfam .ra svg{width:110px}.lf-s .lf-c{font-size:26px}.lf-s .lf-t{font-size:23px}.lf-s .lf-n{font-size:14px}}
 .times.rt .tb:first-child{padding-left:0}
 .times.rt .tb:last-child{padding-right:0;text-align:right}
 .route3 .rn{font-size:13px;color:var(--muted);line-height:1.25;margin-top:3px}
@@ -673,7 +700,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.15.1';
+const APP_VERSION = '1.16.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1202,6 +1229,30 @@ function routeOf(p) {
   }
   return r.map(stCity).join(' › ');
 }
+function tripSummary(p) {
+  const last = p.duties[p.duties.length - 1];
+  const legs = legsOf(p);
+  const home = legs[0] ? legs[0].from : null;
+  const endStn = legs.length ? legs[legs.length - 1].to : last.endStation;
+  const ev = view(last.end, S.mode);
+  const n = datesOf(pS(p), pE(p)).length;
+  return h('div', { class: 'tripsum' },
+    h('span', { text: `${n}-day trip` }),
+    home && endStn === home
+      ? h('span', { class: 'ts-home', text: `· Home ${ev.date}` })
+      : h('span', { text: `· Ends ${stCity(endStn)} ${ev.date}` }));
+}
+function relAgo(iso) {
+  const ms = Date.now() - Date.parse(iso);
+  if (!(ms >= 0)) return '';
+  const mi = Math.round(ms / 60000);
+  if (mi < 1) return 'just now';
+  if (mi < 60) return `${mi} min ago`;
+  const hr = Math.round(mi / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? '' : 's'} ago`;
+  const dy = Math.round(hr / 24);
+  return `${dy} day${dy === 1 ? '' : 's'} ago`;
+}
 function otherCrew(p) {
   const s = new Set();
   [...(p.crew || []), ...p.duties.flatMap(d => d.crew || [])].forEach(c => { if (!isMe(c)) s.add(c.name); });
@@ -1296,13 +1347,15 @@ function setMode(m) {
 const MODES = () => [['local', 'Local'], ['base', 'Base'], ['utc', 'UTC']];
 
 /* ---------- pairing detail ---------- */
-function timeBlock(label, pt) {
+function timeBlock(label, pt, opts) {
+  opts = opts || {};
   const v = view(pt, S.mode);
+  const sameDay = opts.refKey && v.key === opts.refKey;
   return h('div', { class: 'tb' },
     h('div', { class: 'tb-l', text: label }),
     h('div', { class: 't-big' }, v.time, ' ', h('span', { class: 'ab', text: v.ab })),
-    h('div', { class: 't-sub', text: v.date }),
-    h('div', { class: 't-sub', text: secondary(pt, S.mode, v) }));
+    sameDay ? null : h('div', { class: 't-sub', text: v.date }),
+    opts.fam ? null : h('div', { class: 't-sub', text: secondary(pt, S.mode, v) }));
 }
 function badgeOf(l) {
   if (l.kind === 'flight') return 'FLIGHT';
@@ -1323,7 +1376,21 @@ function routeArrow() {
   a.innerHTML = '<svg viewBox="0 0 100 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3.6" fill="currentColor" stroke="none"/><path d="M14 12H92"/><path d="M78 3l14 9-14 9"/></svg>';
   return a;
 }
-function legCard(l) {
+function famLeg(l, homeArrival) {
+  const ov = view(l.out, S.mode), iv = view(l.in, S.mode);
+  const crossDay = iv.key !== ov.key;
+  const side = (code, time, ab, extra, right) => h('div', { class: 'lf-s' + (right ? ' lf-r' : '') },
+    h('div', { class: 'lf-ct' }, h('span', { class: 'lf-c', text: code }), h('span', { class: 'lf-t', text: time }), h('span', { class: 'lf-when', text: ab + (extra ? ' ' + extra : '') })),
+    S.stations[code] ? h('div', { class: 'lf-n', text: S.stations[code] }) : null,
+    right && homeArrival ? h('div', { class: 'lf-home', text: 'Home' }) : null);
+  return h('div', { class: 'legfam' },
+    side(l.from, ov.time, ov.ab, '', false),
+    routeArrow(),
+    side(l.to, iv.time, iv.ab, crossDay ? iv.date.slice(4) : '', true));
+}
+function legCard(l, opts) {
+  opts = opts || {};
+  const tbo = { fam: FAM(), refKey: opts.dutyKey };
   const isEv = l.kind === 'event';
   const route = l.from === l.to ? l.from : `${l.from} → ${l.to}`;
   const chips = [];
@@ -1343,13 +1410,17 @@ function legCard(l) {
     h('div', { class: 'stripe' }),
     h('div', { class: 'lm' },
       h('div', { class: 'lt' }, h('span', { class: 'badge', text: badgeOf(l) }), h('span', { class: 'flt', text: FAM() && l.kind === 'event' ? 'Simulator' : FAM() && l.kind === 'ground' ? '' : l.flight }), h('span', { class: 'blk', text: fmtDur(l.minutes) })),
-      !isEv && l.from !== l.to
-        ? h('div', { class: 'route3' },
-            h('div', { class: 'r-l' }, h('div', { class: 'rc', text: l.from }), S.stations[l.from] ? h('div', { class: 'rn', text: S.stations[l.from] }) : null),
-            routeArrow(),
-            h('div', { class: 'r-r' }, h('div', { class: 'rc', text: l.to }), S.stations[l.to] ? h('div', { class: 'rn', text: S.stations[l.to] }) : null))
-        : h('div', { class: 'route', text: route }),
-      h('div', { class: 'times' + (!isEv && l.from !== l.to ? ' rt' : '') }, timeBlock(isEv ? 'Start' : 'Departs', l.out), timeBlock(isEv ? 'End' : 'Arrives', l.in)),
+      FAM() && !isEv && l.from !== l.to
+        ? famLeg(l, opts.homeArrival)
+        : [
+            !isEv && l.from !== l.to
+              ? h('div', { class: 'route3' },
+                  h('div', { class: 'r-l' }, h('div', { class: 'rc', text: l.from }), S.stations[l.from] ? h('div', { class: 'rn', text: S.stations[l.from] }) : null),
+                  routeArrow(),
+                  h('div', { class: 'r-r' }, h('div', { class: 'rc', text: l.to }), S.stations[l.to] ? h('div', { class: 'rn', text: S.stations[l.to] }) : null))
+              : h('div', { class: 'route', text: route }),
+            h('div', { class: 'times' + (!isEv && l.from !== l.to ? ' rt' : '') }, timeBlock(isEv ? 'Start' : 'Departs', l.out, tbo), timeBlock(isEv ? 'End' : 'Arrives', l.in, tbo))
+          ],
       chips.length ? h('div', { class: 'chips' }, chips) : null));
 }
 /* Always dial with a country code. Numbers in the data should start with +. A bare 10 digit North American number gets +1 as a safety net. */
@@ -1379,9 +1450,11 @@ function restCard(r, duty, next, restIdx) {
 function dutyCard(p, d, i) {
   const days = datesOf(Date.parse(d.start.t), Date.parse(d.end.t));
   const sv = view(d.start, S.mode);
+  const dutyKey = sv.key;
+  const allLegs = legsOf(p), home = allLegs[0] ? allLegs[0].from : null, lastLeg = allLegs[allLegs.length - 1];
   const kids = [
     h('div', { class: 'dh' }, h('h3', { text: `DUTY ${i + 1} OF ${p.duties.length}` }), h('span', { text: sv.date })),
-    p.historic ? null : h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation ? stCity(d.startStation) : ''}`.trim(), d.start), timeBlock(`Release ${d.endStation ? stCity(d.endStation) : ''}`.trim(), d.end)),
+    p.historic || FAM() ? null : h('div', { class: 'tbs' }, timeBlock(`Report ${d.startStation ? stCity(d.startStation) : ''}`.trim(), d.start, { refKey: dutyKey }), timeBlock(`Release ${d.endStation ? stCity(d.endStation) : ''}`.trim(), d.end, { refKey: dutyKey })),
     FAM() ? null : h('div', { class: 'chips', style: 'margin-top:0' },
       p.historic ? null : h('span', { class: 'chip', text: `Duty ${fmtDur(d.dutyMinutes)}` }),
       d.flightMinutes != null ? h('span', { class: 'chip', text: `Flight time ${fmtDur(d.flightMinutes)}` }) : null)
@@ -1396,7 +1469,7 @@ function dutyCard(p, d, i) {
       const g = Math.round((Date.parse(l.out.t) - Date.parse(prev.in.t)) / MS);
       if (g > 0) kids.push(h('div', { class: 'gap', 'data-gap': `${i}-${k}`, text: FAM() && S.stations[prev.to] ? `Ground time ${fmtDur(g)} in ${stCity(prev.to)}` : `Ground time ${fmtDur(g)} at ${prev.to}` }));
     }
-    const lc = legCard(l); lc.setAttribute('data-leg', `${i}-${k}`);
+    const lc = legCard(l, { dutyKey, homeArrival: FAM() && l === lastLeg && home && l.to === home }); lc.setAttribute('data-leg', `${i}-${k}`);
     kids.push(lc);
   });
   return h('div', { class: 'card duty', 'data-duty': String(i), 'data-days': days.join(' ') }, kids);
@@ -1434,8 +1507,8 @@ function nowLabel(sg, now) {
     default: return `ON DUTY · release ${rem}`;
   }
 }
-function applyActive(root, p) {
-  root.querySelectorAll('.now-active,.now-duty').forEach(e => e.classList.remove('now-active', 'now-duty'));
+function applyActive(root, p, flash) {
+  root.querySelectorAll('.now-active,.now-duty').forEach(e => e.classList.remove('now-active', 'now-duty', 'now-flash'));
   root.querySelectorAll('.nowb').forEach(e => e.remove());
   const now = Date.now(), sg = activeSeg(p, now);
   if (!sg) return null;
@@ -1444,6 +1517,7 @@ function applyActive(root, p) {
   if (!el) return null;
   if (duty && duty !== el && sg.kind !== 'rest') duty.classList.add('now-duty');
   el.classList.add('now-active');
+  if (flash) { el.classList.add('now-flash'); el.addEventListener('animationend', () => el.classList.remove('now-flash'), { once: true }); }
   const b = h('div', { class: 'nowb', role: 'status', text: 'NOW · ' + nowLabel(sg, now) });
   const lm = el.classList.contains('leg-card') ? el.querySelector('.lm') : null;
   (lm || el).prepend(b);
@@ -1475,6 +1549,7 @@ function openPairing(key, scrollDay, centerNow, forceSheet) {
       h('div', { class: 'range' },
         h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time} ${sv.ab}`),
         h('div', {}, h('span', { class: 'muted', text: 'End   ' }), `${ev.date} ${ev.time} ${ev.ab}`)),
+      FAM() && !isSim(p) ? tripSummary(p) : null,
       h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('span', { text: 'Pairing duration' }), h('b', { text: fmtDur(p.durationMinutes) })),
         h('div', { class: 'stat' }, h('span', { text: 'Flight time' }), h('b', { text: flight ? fmtDur(flight) : '–' })),
@@ -1524,7 +1599,7 @@ function openPairing(key, scrollDay, centerNow, forceSheet) {
         seg(MODES(), S.mode, m => { setMode(m); draw(); render(); })),
       h('div', { class: 'sheet-body' }, FAM() ? body.filter(el => !el.classList.contains('full-only')) : body));
     scroller.scrollTop = top;
-    ACT = applyActive(sheet, p);
+    ACT = applyActive(sheet, p, true);
   };
   let ACT = null;
   draw();
@@ -1744,6 +1819,7 @@ function render() {
   const kids = [
     h('header', { class: 'top' },
       h('div', { class: 'tl' }, h('h1', {}, 'Ashley Aloft', FAM() ? h('small', { text: 'Family view' }) : null)),
+      S.sync.last ? h('span', { class: 'upd', text: `Updated ${relAgo(S.sync.last)}` }) : null,
       h('button', { type: 'button', class: 'iconbtn', id: 'refreshbtn', 'aria-label': 'Refresh from the internet', onclick: hardRefresh }, icon('refresh')),
       h('div', { class: 'tr' },
         ready ? h('span', { class: 'pill off', title: 'Offline ready', text: 'Offline ready' }) : null,

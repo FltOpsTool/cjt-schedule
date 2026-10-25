@@ -72,6 +72,20 @@ A simpler read-only view for family devices. It shows report and release times, 
 - Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. From 1.15.1 the Flightradar24 button reads "(live flights only)", since it only shows a flight while it is in the air. FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
 - Family view hides data on screen only. The JSON on that device still contains the full schedule.
 
+### Compact pairings (1.16.0)
+
+Pairings were made shorter so a trip does not run for several screens.
+
+- A trip summary line at the top of each pairing, for example "6-day trip · Home Fri Nov 6". The "Home" part is green when the trip ends back at the home base.
+- A green "Home" label on the final arrival that returns to base.
+- Family view drops the UTC (Zulu) time line and the duty Report and Release boxes, and shows each flight on one tighter row: code, time and city on the left, arrow, code, time and city on the right. An arrival on a later day shows the date next to the arrival time.
+- Full view keeps the Zulu times and the Report and Release boxes, but no longer repeats the date on a time when it is the same day as the duty.
+- A small "Updated N hours ago" note in the header shows when the app last synced.
+
+## Active-part highlight (NOW)
+
+When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it. From 1.16.0 the outline is amber (not blue, so it stands out from the rest of the app) and it flashes a few times when the pairing opens to catch the eye. The flash respects the device "reduce motion" setting.
+
 ## Calendar icons
 
 Each calendar day shows small icons in the order things happen that day: a climbing yellow aircraft for flying, a level pink aircraft for positioning (deadhead), a pink car for ground transport, an orange monitor for office days, a purple motion simulator for sim days, and a blue moon for layover days with no flying or office work. Up to three icons show on iPad, two on a phone. On a phone, a plain office day shows one large centred icon instead of the OFFICE label.
