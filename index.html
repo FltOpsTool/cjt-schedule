@@ -119,11 +119,11 @@ a{color:inherit}
 .cell.dim{background:var(--dim)}
 .cell.dim .dn{opacity:.55}
 .cell.today{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
-.cell.today.today-flash{animation:todaypulse 1.6s ease-in-out}
+.cell.today.today-flash{animation:todaypulse 2.1s ease-in-out}
 @keyframes todaypulse{
   0%,100%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
-  20%,60%{background:var(--today-hi);box-shadow:inset 0 0 0 7px var(--now)}
-  40%,80%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
+  16%,50%,83%{background:var(--today-hi);box-shadow:inset 0 0 0 7px var(--now)}
+  33%,66%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
 }
 @media (prefers-reduced-motion:reduce){.cell.today.today-flash{animation:none}}
 .cell.nextd{box-shadow:inset 0 0 0 2px var(--accent)}
@@ -363,11 +363,11 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 @media (max-height:520px) and (orientation:landscape){.gl-ctl{top:calc(56px + env(safe-area-inset-top))}}
 @media (min-width:900px){.app.wide{padding-bottom:var(--tabh)}.layout{min-height:calc(100vh - var(--tabh));min-height:calc(100dvh - var(--tabh))}.pane{height:calc(100vh - var(--tabh));height:calc(100dvh - var(--tabh))}}
 .now-active{outline:3px solid var(--now);outline-offset:2px;border-radius:12px}
-.now-active.now-flash{animation:nowflash 1.6s ease-in-out}
+.now-active.now-flash{animation:nowflash 2.1s ease-in-out}
 @keyframes nowflash{
   0%,100%{outline-color:var(--now);outline-width:3px;box-shadow:inset 0 0 0 2000px transparent}
-  20%,60%{outline-color:var(--now);outline-width:6px;box-shadow:inset 0 0 0 2000px var(--now-soft)}
-  40%,80%{outline-color:var(--now);outline-width:3px;box-shadow:inset 0 0 0 2000px transparent}
+  16%,50%,83%{outline-color:var(--now);outline-width:6px;box-shadow:inset 0 0 0 2000px var(--now-soft)}
+  33%,66%{outline-color:var(--now);outline-width:3px;box-shadow:inset 0 0 0 2000px transparent}
 }
 @media (prefers-reduced-motion:reduce){.now-active.now-flash{animation:none}}
 .now-duty{box-shadow:inset 0 0 0 2px var(--now);border-radius:12px}
@@ -706,7 +706,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.5';
+const APP_VERSION = '1.16.6';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1804,12 +1804,26 @@ function gridEl() {
     if (Math.abs(dx) > 70 && Math.abs(dy) < 50) shiftMonth(dx < 0 ? 1 : -1);
   }, { passive: true });
   const tcell = g.querySelector('.cell.today');
-  if (tcell) {
-    if (!todayShown) { tcell.classList.add('today-flash'); tcell.addEventListener('animationend', () => tcell.classList.remove('today-flash'), { once: true }); }
-    todayShown = true;
-  } else todayShown = false;
+  if (tcell) { if (!todayShown) flashTodayWhenVisible(); todayShown = true; } else todayShown = false;
   fitGrid(g);
   return g;
+}
+/* Flash the current today cell, but wait until the splash screen is gone so the animation is not played underneath it. */
+let splashWatching = false;
+function flashTodayNow() {
+  const el = document.querySelector('.grid .cell.today');
+  if (!el) return;
+  el.classList.add('today-flash');
+  el.addEventListener('animationend', () => el.classList.remove('today-flash'), { once: true });
+}
+function flashTodayWhenVisible() {
+  if (!document.getElementById('splash')) { flashTodayNow(); return; }
+  if (splashWatching) return;
+  splashWatching = true;
+  let n = 0;
+  const iv = setInterval(() => {
+    if (!document.getElementById('splash') || ++n > 60) { clearInterval(iv); splashWatching = false; requestAnimationFrame(flashTodayNow); }
+  }, 100);
 }
 /* Tell the grid how tall each calendar row is, so icons and labels can shrink to fit small screens. */
 function fitGrid(g) {

@@ -89,9 +89,9 @@ Pairings were made shorter so a trip does not run for several screens.
 
 ## Active-part highlight (NOW)
 
-When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it in amber (not blue, so it stands out from the rest of the app). When the pairing opens the box flashes to catch the eye, then holds the amber outline. From 1.16.5 the flash is a thick amber ring and a light amber wash drawn inside the box (not an outer glow, which the panel used to clip), pulsing twice over about 1.6 seconds, so it shows clearly on all four sides. The flash respects the device "reduce motion" setting.
+When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it in amber (not blue, so it stands out from the rest of the app). When the pairing opens the box flashes to catch the eye, then holds the amber outline. From 1.16.6 the flash is a thick amber ring and a light amber wash drawn inside the box (not an outer glow, which the panel used to clip), pulsing three times over about two seconds, so it shows clearly on all four sides. The flash respects the device "reduce motion" setting.
 
-From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty. From 1.16.5 the flash is a thick amber ring and a brighter fill drawn inside the cell, pulsing twice over about 1.6 seconds, so it is clear and not clipped by the calendar grid.
+From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty. From 1.16.6 the flash is a thick amber ring and a brighter fill drawn inside the cell, pulsing three times over about two seconds. It waits until the splash screen has finished before it plays (earlier it ran underneath the splash on a cold open and was over before the calendar appeared), so it is clear and not clipped by the calendar grid.
 
 ## Office days
 
