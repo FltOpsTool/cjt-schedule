@@ -363,6 +363,37 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 .route3 .rn{font-size:13px;color:var(--muted);line-height:1.25;margin-top:3px}
 .route3 .r-r{text-align:right}
 @media (min-width:600px){.route3 .rc{font-size:26px}.route3 .ra{height:30px}.route3 .ra svg{width:128px}.route3 .rn{font-size:14px}}
+/* ---- 1.13.1 fit-to-screen calendar (iPad portrait and landscape, any resolution) ---- */
+.calwrap{display:contents}
+@media (min-width:600px){
+  .calwrap{display:flex;flex-direction:column;min-height:0;
+    height:calc(100vh - var(--tabh) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height:calc(100dvh - var(--tabh) - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+  .calwrap>*{flex:none}
+  .calwrap>.grid{flex:1 1 0;min-height:0;grid-auto-rows:minmax(0,1fr)}
+  .app{padding-bottom:var(--tabh)}
+  .app.agenda{padding-bottom:calc(var(--tabh) + 36px)}
+  .left{padding-bottom:0}
+  .top{padding:6px 0}
+  .next{margin:2px 0 8px;padding:10px 16px}
+  .monthbar{margin:0 0 6px}
+  .legend{margin:8px 2px 8px}
+  .cell{min-height:0;overflow:hidden;padding:4px 5px;gap:2px}
+  .grid{--rh:120px}
+  .ic{width:clamp(20px,calc(var(--rh) * .36),42px);height:clamp(20px,calc(var(--rh) * .36),42px)}
+  .ic-sim{width:clamp(22px,calc(var(--rh) * .4),48px);height:clamp(22px,calc(var(--rh) * .4),48px)}
+  .ci{min-height:0;gap:4px}
+  .dn{font-size:clamp(11px,calc(var(--rh) * .13),14px)}
+  .chip-day{padding:clamp(2px,calc(var(--rh) * .03),6px) 0;font-size:clamp(9px,calc(var(--rh) * .09),11px)}
+  .bar{height:clamp(12px,calc(var(--rh) * .17),22px)}
+  .lbl{font-size:clamp(10px,calc(var(--rh) * .11),12px)}
+  .grid[data-tight="1"] .nextmark,.grid[data-tight="2"] .nextmark{font-size:8px;top:3px;right:3px;padding:1px 3px}
+  .grid[data-tight="1"] .chip-day.office,.grid[data-tight="2"] .chip-day.office{display:none}
+  .grid[data-tight="1"] .ci .ic:nth-child(3),.grid[data-tight="2"] .ci .ic:nth-child(3){display:none}
+  .grid[data-tight="1"] .cell.oo .ci,.grid[data-tight="2"] .cell.oo .ci{position:absolute;left:0;right:0;top:20px;bottom:2px;margin:0;justify-content:center;align-items:center}
+  .grid[data-tight="1"] .cell.oo .ic,.grid[data-tight="2"] .cell.oo .ic{width:clamp(22px,calc(var(--rh) * .42),40px);height:clamp(22px,calc(var(--rh) * .42),40px)}
+}
+@media (min-width:600px) and (max-height:620px){.top h1 small{display:none}}
 </style>
 </head>
 <body>
@@ -609,7 +640,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.13.0';
+const APP_VERSION = '1.13.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1605,7 +1636,20 @@ function gridEl() {
     const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
     if (Math.abs(dx) > 70 && Math.abs(dy) < 50) shiftMonth(dx < 0 ? 1 : -1);
   }, { passive: true });
+  fitGrid(g);
   return g;
+}
+/* Tell the grid how tall each calendar row is, so icons and labels can shrink to fit small screens. */
+function fitGrid(g) {
+  const measure = () => {
+    const n = Math.max(1, Math.round(g.children.length / 7));
+    const rh = g.clientHeight / n;
+    if (!rh) return;
+    g.style.setProperty('--rh', rh.toFixed(1) + 'px');
+    g.dataset.tight = rh < 78 ? '2' : rh < 108 ? '1' : '0';
+  };
+  try { new ResizeObserver(measure).observe(g); } catch { /* older browsers: CSS fallbacks apply */ }
+  requestAnimationFrame(measure);
 }
 function render() {
   glRefresh();
@@ -1649,11 +1693,13 @@ function render() {
     h('div', { class: 'legend' },
       legItem('airplane', 'Flight'), legItem('airplane-in-flight', 'Deadhead'), legItem('car-simple', 'Ground'), legItem('sim', 'Simulator'), legItem('desktop', 'Office'), legItem('moon-stars', 'Layover'),
       h('span', {}, h('b', { style: 'background:var(--dutybar)' }), 'Duty')));
+  { const calKids = kids.splice(0); kids.push(h('div', { class: 'calwrap' }, ...calKids)); }
   if (!S.pairings.length && !S.days.length) {
     kids.push(h('div', { class: 'empty' }, h('p', { style: 'margin:0 0 12px', text: 'No schedule loaded yet.' }), h('button', { type: 'button', class: 'btn primary', onclick: openSettings, text: 'Import schedule file' })));
   } else if (inMonth.length) {
     kids.push(h('div', { class: 'sect', text: 'Pairings and events this month' }), ...inMonth.map(p => agendaRow(p, () => openPairing(p.key, null, true))));
   }
+  app.classList.toggle('agenda', kids.length > 1);
   const wide = isWide();
   app.classList.toggle('wide', wide);
   if (wide) {

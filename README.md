@@ -91,6 +91,7 @@ Safari can clear the stored data of a website that has not been opened for about
 - Phone: one column, pairing opens full screen (Android back button closes it).
 - iPad portrait: wider column with larger day cells, pairing opens as a centered panel.
 - iPad landscape and desktop (900 px wide or more): calendar on the left, pairing details on the right. Tapping a day updates the right side without leaving the month.
+- Fits any iPad screen (1.13.1): on tablets the calendar, the legend and the tab bar always share the screen, in portrait and landscape, on small and large iPads alike. Week rows shrink to fit (5 or 6 weeks), and the day icons scale down with them, so nothing is hidden behind the tab bar. The list of pairings for the month sits below and scrolls.
 - Theme: Auto (follows the device, default), Day or Night. Use the sun/moon button at the top or Settings.
 
 ## Monthly routine
