@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ashley Aloft">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon-v3.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-v4.png">
 <script>
 /* set the theme before first paint so there is no flash */
 (function(){try{var p=localStorage.getItem('cjt.theme');var d=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
@@ -17,7 +17,7 @@ var t=p==='day'?'day':p==='night'?'night':(d?'night':'day');document.documentEle
 if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('content','#f3f5f9');document.querySelector('meta[name=color-scheme]').setAttribute('content','light');}}catch(e){}})();
 </script>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192-v3.png">
+<link rel="icon" href="icons/icon-192-v4.png">
 <title>Ashley Aloft</title>
 <style>
 :root{
@@ -80,10 +80,10 @@ a{color:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 .iconbtn.spin svg{animation:spin .8s linear infinite}
 #splash{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1000;background:#000;pointer-events:none;overflow:hidden}
-#splash img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.72);transform-origin:50% 50%;will-change:transform,opacity}
+#splash img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.5);transform-origin:50% 50%;will-change:transform,opacity}
 #splash.go img{animation:splashZoom 1.7s cubic-bezier(.22,.61,.36,1) forwards}
 #splash.go{animation:splashOut .4s ease 1.9s forwards}
-@keyframes splashZoom{0%{transform:scale(.72);opacity:0}22%{opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes splashZoom{0%{transform:scale(.5);opacity:0}22%{opacity:1}100%{transform:scale(.8);opacity:1}}
 @keyframes splashOut{to{opacity:0}}
 @media (prefers-reduced-motion:reduce){#splash{display:none}}
 .iconbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
@@ -431,7 +431,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 </head>
 <body>
 <noscript><p style="padding:20px">Ashley Aloft needs JavaScript.</p></noscript>
-<div id="splash" aria-hidden="true"><img id="splashimg" src="icons/splash-v1.webp" alt="" width="1254" height="1254"></div>
+<div id="splash" aria-hidden="true"><img id="splashimg" src="icons/splash-v2.webp" alt="" width="1254" height="1254"></div>
 <script>
 (function(){var s=document.getElementById('splash'),im=document.getElementById('splashimg'),skip=false;
 function kill(){if(s&&s.parentNode)s.remove()}
@@ -673,7 +673,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.14.0';
+const APP_VERSION = '1.14.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
