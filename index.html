@@ -188,6 +188,8 @@ a{color:inherit}
 .stat b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
 .stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
 .range{font-size:15px;font-variant-numeric:tabular-nums;margin-top:6px}
+.range.fam{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.range.fam .r-end{text-align:right}
 .muted{color:var(--muted)}
 .small{font-size:12px}
 .notice{background:var(--notice-bg);border:1px solid var(--notice-line);color:var(--notice-ink);border-radius:10px;padding:8px 10px;font-size:13px;margin-top:10px}
@@ -208,7 +210,7 @@ a{color:inherit}
 .t-big .ab{font-size:13px;font-weight:700;color:var(--muted)}
 .t-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip.trk{min-height:40px;padding:0 14px;text-decoration:none;border-color:var(--accent);color:var(--accent);font-weight:700}
+.chip.trk{min-height:40px;padding:0 13px;text-decoration:none;border-color:var(--accent);color:var(--accent);font-weight:700;white-space:nowrap}
 .chip{display:inline-flex;align-items:center;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--inset);border:1px solid var(--line);min-height:28px}
 button.chip{min-height:40px;padding:0 14px}
 .leg-card{display:grid;grid-template-columns:7px 1fr;border-radius:12px;overflow:hidden;background:var(--surface2);margin:10px 0 0}
@@ -707,7 +709,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.2';
+const APP_VERSION = '1.16.3';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -720,8 +722,13 @@ const FAM = () => S.view === 'family';
 /* Cargojet flights appear on tracking sites under the CJT call sign (W8 377 is CJT377) */
 function callsignOf(l) {
   if (l.kind !== 'flight' && l.kind !== 'deadhead') return null;
-  const m = /^(?:W8)?\s*(\d{1,4})$/i.exec((l.flight || '').trim());
-  return m ? 'CJT' + m[1] : null;
+  const f = (l.flight || '').trim();
+  const cjt = /^(?:W8)?\s*(\d{1,4})$/i.exec(f);
+  if (cjt) return 'CJT' + cjt[1];
+  // A commercial segment (usually a deadhead) with an airline-code flight number, e.g. AC123 or PD595.
+  const com = /^([A-Za-z]{2}[A-Za-z]?)\s?0*(\d{1,4})[A-Za-z]?$/.exec(f);
+  if (com) return com[1].toUpperCase() + com[2];
+  return null;
 }
 function setView(v) { S.view = v === 'family' ? 'family' : 'full'; try { localStorage.setItem('cjt.view', S.view); } catch { /* ignore */ } }
 const simName = l => { const d = simDev(l); return d ? `${d.name} - ${d.id}` : null; };
@@ -1408,8 +1415,10 @@ function legCard(l, opts) {
   if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
   const cs = l.log ? null : callsignOf(l);
   if (cs) {
-    const trk = (name, href, note) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${name}${note ? ' ' + note : ''}`, text: `Track on ${name}${note ? ' ' + note : ''}` });
-    chips.push(trk('FlightAware', `https://flightaware.com/live/flight/${cs}`), trk('Flightradar24', `https://www.flightradar24.com/${cs}`, '(live flights only)'));
+    const trk = (label, aria, href) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${aria}`, text: label });
+    chips.push(
+      trk('F/Aware', 'FlightAware', `https://flightaware.com/live/flight/${cs}`),
+      trk('FR24 (live only)', 'Flightradar24, live flights only', `https://www.flightradar24.com/${cs}`));
   }
   if (l.locator && !FAM()) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
   if (l.note && !FAM()) chips.push(h('span', { class: 'chip', text: l.note }));
@@ -1550,12 +1559,16 @@ function openPairing(key, scrollDay, centerNow, forceSheet) {
     const flight = totalFlight(p);
     const body = [];
     const head = h('div', { class: 'card' },
-      h('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap' },
+      FAM() ? null : h('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap' },
         h('div', { class: 'pid', text: titleOf(p) }),
         tagsOf(p).map(t => h('span', { class: 'tag', text: t }))),
-      h('div', { class: 'range' },
-        h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time} ${sv.ab}`),
-        h('div', {}, h('span', { class: 'muted', text: 'End   ' }), `${ev.date} ${ev.time} ${ev.ab}`)),
+      FAM()
+        ? h('div', { class: 'range fam' },
+            h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time}`),
+            h('div', { class: 'r-end' }, h('span', { class: 'muted', text: 'End ' }), `${ev.date} ${ev.time}`))
+        : h('div', { class: 'range' },
+            h('div', {}, h('span', { class: 'muted', text: 'Start ' }), `${sv.date} ${sv.time} ${sv.ab}`),
+            h('div', {}, h('span', { class: 'muted', text: 'End   ' }), `${ev.date} ${ev.time} ${ev.ab}`)),
       FAM() && !isSim(p) ? tripSummary(p) : null,
       h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('span', { text: 'Pairing duration' }), h('b', { text: fmtDur(p.durationMinutes) })),
@@ -1602,7 +1615,7 @@ function openPairing(key, scrollDay, centerNow, forceSheet) {
     sheet.replaceChildren(
       h('div', { class: 'sheet-head' },
         wide ? null : h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Back', onclick: closeSheet }, icon('left')),
-        h('div', { class: 'sheet-title', text: FAM() && isSim(p) ? 'Simulator training' : `Pairing ${p.id}` }),
+        h('div', { class: 'sheet-title', text: FAM() ? (isSim(p) ? 'Simulator training' : 'Trip') : `Pairing ${p.id}` }),
         seg(MODES(), S.mode, m => { setMode(m); draw(); render(); })),
       h('div', { class: 'sheet-body' }, FAM() ? body.filter(el => !el.classList.contains('full-only')) : body));
     scroller.scrollTop = top;

@@ -69,7 +69,12 @@ A simpler read-only view for family devices. It shows report and release times, 
 
 - Switch a device: Settings, View, Family. On Android Chrome you can also open the app with `?view=family` added to the address.
 - On iPhone or iPad, a Home Screen app has its own storage, so set the view inside the installed app (Settings, View, Family).
-- Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. From 1.15.1 the Flightradar24 button reads "(live flights only)", since it only shows a flight while it is in the air. FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
+- Each flight or positioning leg has two small tracking buttons, **F/Aware** (FlightAware) and **FR24 (live only)** (Flightradar24). They need a connection. The short labels (from 1.16.3) keep both buttons on one line on a phone and iPad. Flightradar24 only shows a flight while it is in the air; FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
+- Tracking covers Cargojet flights (W8 377 becomes CJT377) and, from 1.16.3, positioning legs on a commercial flight with an airline-code number (for example AC123 or PD595). Limo and ground legs have no tracking link.
+
+### Compact trip header in Family view (1.16.3)
+
+In Family view a pairing no longer shows the pairing number (it means nothing to family). The title bar reads "Trip", and the header shows Start on the left and End on the right on one line, followed by the trip summary line. Full view still shows the pairing number and the start and end block.
 - Family view hides data on screen only. The JSON on that device still contains the full schedule.
 
 ### Compact pairings (1.16.0)
