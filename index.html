@@ -673,7 +673,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.15.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1334,8 +1334,8 @@ function legCard(l) {
   if (l.aircraft) chips.push(h('span', { class: 'chip', text: `${l.aircraft.reg}${l.aircraft.type ? ' · ' + l.aircraft.type : ''}` }));
   const cs = l.log ? null : callsignOf(l);
   if (cs) {
-    const trk = (name, href) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${name}`, text: `Track on ${name}` });
-    chips.push(trk('FlightAware', `https://flightaware.com/live/flight/${cs}`), trk('Flightradar24', `https://www.flightradar24.com/${cs}`));
+    const trk = (name, href, note) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${name}${note ? ' ' + note : ''}`, text: `Track on ${name}${note ? ' ' + note : ''}` });
+    chips.push(trk('FlightAware', `https://flightaware.com/live/flight/${cs}`), trk('Flightradar24', `https://www.flightradar24.com/${cs}`, '(live flights only)'));
   }
   if (l.locator && !FAM()) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
   if (l.note && !FAM()) chips.push(h('span', { class: 'chip', text: l.note }));

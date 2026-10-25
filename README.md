@@ -69,7 +69,7 @@ A simpler read-only view for family devices. It shows report and release times, 
 
 - Switch a device: Settings, View, Family. On Android Chrome you can also open the app with `?view=family` added to the address.
 - On iPhone or iPad, a Home Screen app has its own storage, so set the view inside the installed app (Settings, View, Family).
-- Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. The link formats are unverified, so report any that fail.
+- Each flight leg has **Track on FlightAware** and **Track on Flightradar24** buttons using the CJT call sign (for example W8 377 becomes CJT377). They need a connection. From 1.15.1 the Flightradar24 button reads "(live flights only)", since it only shows a flight while it is in the air. FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
 - Family view hides data on screen only. The JSON on that device still contains the full schedule.
 
 ## Calendar icons
