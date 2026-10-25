@@ -86,6 +86,8 @@ Pairings were made shorter so a trip does not run for several screens.
 
 When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it. From 1.16.0 the outline is amber (not blue, so it stands out from the rest of the app) and it flashes a few times when the pairing opens to catch the eye. The flash respects the device "reduce motion" setting.
 
+From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty.
+
 ## Calendar icons
 
 Each calendar day shows small icons in the order things happen that day: a climbing yellow aircraft for flying, a level pink aircraft for positioning (deadhead), a pink car for ground transport, an orange monitor for office days, a purple motion simulator for sim days, and a blue moon for layover days with no flying or office work. Up to three icons show on iPad, two on a phone. On a phone, a plain office day shows one large centred icon instead of the OFFICE label.

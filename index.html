@@ -118,7 +118,18 @@ a{color:inherit}
 .cell{position:relative;min-height:68px;background:var(--surface);padding:4px 3px 4px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .cell.dim{background:var(--dim)}
 .cell.dim .dn{opacity:.55}
-.cell.today{background:var(--today-bg)}
+.cell.today{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
+.cell.today.today-flash{animation:todayflash 1.9s ease-in-out}
+@keyframes todayflash{
+  0%{box-shadow:inset 0 0 0 2.5px var(--now)}
+  15%{box-shadow:inset 0 0 0 2.5px transparent}
+  30%{box-shadow:inset 0 0 0 3px var(--now)}
+  45%{box-shadow:inset 0 0 0 2.5px transparent}
+  60%{box-shadow:inset 0 0 0 3px var(--now)}
+  75%{box-shadow:inset 0 0 0 2.5px transparent}
+  100%{box-shadow:inset 0 0 0 2.5px var(--now)}
+}
+@media (prefers-reduced-motion:reduce){.cell.today.today-flash{animation:none}}
 .cell.nextd{box-shadow:inset 0 0 0 2px var(--accent)}
 .cell.sel,.cell.sel.nextd{box-shadow:inset 0 0 0 3px var(--text)}
 .nextmark{position:absolute;top:3px;right:2px;font-size:7.5px;font-weight:900;letter-spacing:.02em;background:var(--accent);color:var(--accent-ink);padding:1px 3px;border-radius:4px}
@@ -127,7 +138,7 @@ a{color:inherit}
 .row.isnext.sel{box-shadow:0 0 0 3px var(--text)}
 .tag.nowtag{background:var(--accent);color:var(--accent-ink)}
 .dn{font-size:12px;font-weight:700;color:var(--muted);align-self:flex-start;line-height:1.3}
-.cell.today .dn{background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:0 6px}
+.cell.today .dn{background:var(--now);color:var(--now-ink);border-radius:6px;padding:0 6px}
 .bar{position:relative;height:16px;overflow:hidden}
 .bar i{position:absolute;display:block;min-width:2px}
 .bar .ext{background:var(--ext);top:3px;bottom:3px}
@@ -700,7 +711,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.0';
+const APP_VERSION = '1.16.1';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1770,6 +1781,7 @@ function shiftMonth(n) {
   S.month = { y: d.getUTCFullYear(), m: d.getUTCMonth() };
   render();
 }
+let todayShown = false;
 function gridEl() {
   const { y, m } = S.month;
   const firstKey = `${y}-${pad(m + 1)}-01`;
@@ -1785,6 +1797,11 @@ function gridEl() {
     const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
     if (Math.abs(dx) > 70 && Math.abs(dy) < 50) shiftMonth(dx < 0 ? 1 : -1);
   }, { passive: true });
+  const tcell = g.querySelector('.cell.today');
+  if (tcell) {
+    if (!todayShown) { tcell.classList.add('today-flash'); tcell.addEventListener('animationend', () => tcell.classList.remove('today-flash'), { once: true }); }
+    todayShown = true;
+  } else todayShown = false;
   fitGrid(g);
   return g;
 }
