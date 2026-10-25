@@ -119,7 +119,7 @@ a{color:inherit}
 .cell.dim{background:var(--dim)}
 .cell.dim .dn{opacity:.55}
 .cell.today{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
-.cell.today.today-flash{animation:todaypulse 2.1s ease-in-out}
+.cell.today.today-flash{animation:todaypulse 2.8s ease-in-out}
 @keyframes todaypulse{
   0%,100%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
   16%,50%,83%{background:var(--today-hi);box-shadow:inset 0 0 0 7px var(--now)}
@@ -363,7 +363,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 @media (max-height:520px) and (orientation:landscape){.gl-ctl{top:calc(56px + env(safe-area-inset-top))}}
 @media (min-width:900px){.app.wide{padding-bottom:var(--tabh)}.layout{min-height:calc(100vh - var(--tabh));min-height:calc(100dvh - var(--tabh))}.pane{height:calc(100vh - var(--tabh));height:calc(100dvh - var(--tabh))}}
 .now-active{outline:3px solid var(--now);outline-offset:2px;border-radius:12px}
-.now-active.now-flash{animation:nowflash 2.1s ease-in-out}
+.now-active.now-flash{animation:nowflash 2.8s ease-in-out}
 @keyframes nowflash{
   0%,100%{outline-color:var(--now);outline-width:3px;box-shadow:inset 0 0 0 2000px transparent}
   16%,50%,83%{outline-color:var(--now);outline-width:6px;box-shadow:inset 0 0 0 2000px var(--now-soft)}
@@ -706,7 +706,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.6';
+const APP_VERSION = '1.16.7';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1323,7 +1323,7 @@ function closeSheet() { history.back(); }
 window.addEventListener('popstate', () => {
   const depth = (history.state && history.state.sheet) || 0;
   while (sheets.length > depth) { const s = sheets.pop(); if (s.onClose) s.onClose(); s.el.remove(); }
-  if (!sheets.length) document.documentElement.classList.remove('noscroll');
+  if (!sheets.length) { document.documentElement.classList.remove('noscroll'); if (S.tab === 'schedule') flashTodayWhenVisible(); }
 });
 /* the right-hand pane used on wide screens instead of full-screen sheets */
 const paneEl = h('aside', { class: 'pane', 'aria-label': 'Details' });
@@ -1338,6 +1338,7 @@ function clearPane() {
   paneEl.replaceChildren(h('div', { class: 'pane-empty', text: 'Select a day or a pairing to see its details here.' }));
   paneEl.scrollTop = 0;
   markSel();
+  if (S.tab === 'schedule') flashTodayWhenVisible();
 }
 function takePane(onClose) {
   runPaneClose();
@@ -1813,6 +1814,7 @@ let splashWatching = false;
 function flashTodayNow() {
   const el = document.querySelector('.grid .cell.today');
   if (!el) return;
+  el.classList.remove('today-flash'); void el.offsetWidth; // restart the animation if it is already running
   el.classList.add('today-flash');
   el.addEventListener('animationend', () => el.classList.remove('today-flash'), { once: true });
 }
@@ -2219,7 +2221,7 @@ function setTab(t) {
   }
   if (t === 'pilots') { if (!pl) plBuild(); pl.draw(); pl.root.style.display = 'block'; }
   else if (pl) pl.root.style.display = 'none';
-  if (t === 'schedule') render();
+  if (t === 'schedule') { render(); flashTodayWhenVisible(); }
 }
 function syncTabs() {
   const b = document.querySelector('#tabbar button[data-t="pilots"]');
