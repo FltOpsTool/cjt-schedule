@@ -673,7 +673,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.14.2';
+const APP_VERSION = '1.15.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -917,6 +917,14 @@ function validate(o) {
     if (typeof o.stations !== 'object' || Array.isArray(o.stations)) errs.push('"stations" must be an object of airport code to place name.');
     else for (const [k, v] of Object.entries(o.stations)) if (!/^[A-Z0-9]{3,4}$/.test(k) || typeof v !== 'string' || !v.trim() || v.length > 60) errs.push(`Station ${k}: needs a code and a short place name`);
   }
+  if (o.removed != null) {
+    const r = o.removed;
+    if (typeof r !== 'object' || Array.isArray(r)) errs.push('"removed" must be an object with "pairings" and/or "days".');
+    else {
+      if (r.pairings != null && (!Array.isArray(r.pairings) || r.pairings.some(k => typeof k !== 'string' || !/^.+@\d{4}-\d{2}-\d{2}T/.test(k)))) errs.push('"removed.pairings" must be a list of pairing keys like 6722@2026-10-21T05:59:00Z.');
+      if (r.days != null && (!Array.isArray(r.days) || r.days.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d)))) errs.push('"removed.days" must be a list of dates like 2026-11-09.');
+    }
+  }
   (Array.isArray(o.pairings) ? o.pairings : []).forEach((p, i) => {
     const w = `Pairing ${p && p.id ? p.id : '#' + (i + 1)}`;
     if (!p || typeof p.id !== 'string' || !p.id) { errs.push(`${w}: missing id`); return; }
@@ -949,16 +957,23 @@ function canon(p) {
 }
 function overlaps(a, b) { return pS(a) < pE(b) && pS(b) < pE(a); }
 async function importData(o, mode) {
-  const res = { added: 0, revised: [], same: 0, daysAdded: 0, daysChanged: 0, stations: 0, shots: 0, replaced: mode === 'replace' };
+  const res = { added: 0, revised: [], same: 0, daysAdded: 0, daysChanged: 0, removed: 0, stations: 0, shots: 0, replaced: mode === 'replace' };
   const now = new Date().toISOString();
   if (mode === 'replace') {
     await dbClear('pairings'); await dbClear('days');
     S.pairings = []; S.days = [];
-    S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
+    S.sync.shas = {}; S.sync.removed = { pairings: [], days: [] }; await dbPut('meta', { k: 'sync', v: S.sync });
   }
+  /* "removed" lists in a month file delete pairings and days on every device. They are remembered, so an older file cannot bring them back. */
+  const tomb = S.sync.removed = S.sync.removed || { pairings: [], days: [] };
+  const rm = o.removed && typeof o.removed === 'object' ? o.removed : {};
+  for (const k of rm.pairings || []) if (!tomb.pairings.includes(k)) tomb.pairings.push(k);
+  for (const d of rm.days || []) if (!tomb.days.includes(d)) tomb.days.push(d);
+  const isGone = p => tomb.pairings.includes(p.key) || tomb.pairings.includes(`${p.id}@${p.start}`);
   for (const raw of o.pairings || []) {
     const p = JSON.parse(JSON.stringify(raw));
     p.key = p.key || `${p.id}@${p.start}`;
+    if (isGone(p)) continue;
     let ex = S.pairings.find(x => x.key === p.key) || S.pairings.find(x => x.id === p.id && overlaps(x, p));
     if (!ex) {
       p.importedAt = p.importedAt || now;
@@ -979,6 +994,7 @@ async function importData(o, mode) {
     }
   }
   for (const d of o.days || []) {
+    if (tomb.days.includes(d.date)) continue;
     const ex = S.days.find(x => x.date === d.date);
     if (!ex) { S.days.push(d); await dbPut('days', d); res.daysAdded++; }
     else if (ex.type !== d.type || ex.label !== d.label || ex.start !== d.start || ex.end !== d.end) { Object.assign(ex, d); await dbPut('days', ex); res.daysChanged++; }
@@ -997,6 +1013,16 @@ async function importData(o, mode) {
     for (const [k, v] of Object.entries(o.stations)) if (S.stations[k] !== v) { S.stations[k] = v; ch = true; res.stations++; }
     if (ch) await dbPut('meta', { k: 'stations', v: S.stations });
   }
+  for (const p of S.pairings.filter(isGone)) {
+    await dbDel('pairings', p.key);
+    for (const sh of S.shots.filter(x => x.pairingKey === p.key)) await dbDel('shots', sh.id);
+    S.shots = S.shots.filter(x => x.pairingKey !== p.key);
+    res.removed++;
+  }
+  S.pairings = S.pairings.filter(p => !isGone(p));
+  for (const d of S.days.filter(x => tomb.days.includes(x.date))) { await dbDel('days', d.date); res.removed++; }
+  S.days = S.days.filter(x => !tomb.days.includes(x.date));
+  if (o.removed || mode === 'replace') await dbPut('meta', { k: 'sync', v: S.sync });
   if (o.me && o.me.name) S.me = o.me;
   if (o.baseTz) S.baseTz = o.baseTz;
   await saveMeta();
@@ -1082,6 +1108,7 @@ function syncSummary(r) {
   if (r.added) parts.push(`${r.added} pairing${r.added === 1 ? '' : 's'} added`);
   if (r.revised.length) parts.push(`${r.revised.length} revised (${r.revised.join(', ')})`);
   if (n) parts.push(`${n} day${n === 1 ? '' : 's'} updated`);
+  if (r.removed) parts.push(`${r.removed} removed`);
   if (r.legs) parts.push(`${r.legs} flight${r.legs === 1 ? '' : 's'} added to the log`);
   if (r.stations) parts.push(`${r.stations} place name${r.stations === 1 ? '' : 's'} updated`);
   return parts.length ? parts.join(', ') : 'Already up to date';
@@ -1090,7 +1117,7 @@ let syncing = null;
 function syncNow() {
   if (syncing) return syncing;
   syncing = (async () => {
-    const out = { ok: false, files: 0, legs: 0, stations: 0, added: 0, revised: [], daysAdded: 0, daysChanged: 0, bad: [], text: '', status: 0 };
+    const out = { ok: false, files: 0, legs: 0, stations: 0, added: 0, revised: [], daysAdded: 0, daysChanged: 0, removed: 0, bad: [], text: '', status: 0 };
     try {
       if (!S.sync.token) throw Object.assign(new Error('No token saved'), { status: 401 });
       const list = await ghGet(`${GH_API}repos/${S.sync.repo}/contents/`);
@@ -1109,7 +1136,7 @@ function syncNow() {
         const errs = validate(o);
         if (errs.length) { out.bad.push(`${f.name}: ${errs[0]}${errs.length > 1 ? ` (+${errs.length - 1} more)` : ''}`); continue; }
         const r = await importData(o, 'merge');
-        out.added += r.added; out.revised.push(...r.revised); out.daysAdded += r.daysAdded; out.daysChanged += r.daysChanged; out.stations += r.stations; out.files++;
+        out.added += r.added; out.revised.push(...r.revised); out.daysAdded += r.daysAdded; out.daysChanged += r.daysChanged; out.removed += r.removed; out.stations += r.stations; out.files++;
         S.sync.shas[f.name] = f.sha;
       }
       out.ok = true;
@@ -1126,8 +1153,8 @@ async function autoSync(force) {
   if (!force && S.sync.last && Date.now() - Date.parse(S.sync.last) < 10 * MS) return;
   const r = await syncNow();
   if (!r.ok) { if ([401, 403, 404].includes(r.status)) toast('Sync: ' + r.text); return; }
-  if (r.stations && !(r.added || r.revised.length || r.daysAdded || r.daysChanged || r.legs)) { render(); toast('Place names updated'); }
-  else if (r.added || r.revised.length || r.daysAdded || r.daysChanged || r.legs) { render(); toast('Schedule updated: ' + syncSummary(r)); }
+  if (r.stations && !(r.added || r.revised.length || r.daysAdded || r.daysChanged || r.removed || r.legs)) { render(); toast('Place names updated'); }
+  else if (r.added || r.revised.length || r.daysAdded || r.daysChanged || r.removed || r.legs) { render(); toast('Schedule updated: ' + syncSummary(r)); }
   else if (r.bad.length) toast('Sync skipped ' + r.bad[0]);
 }
 
@@ -1790,6 +1817,7 @@ async function openSettings() {
       const r = await importData(o, impMode);
       requestPersist();
       const lines = [`Imported: ${r.added} pairing${r.added === 1 ? '' : 's'} added, ${r.revised.length} revised, ${r.same} unchanged.`, `Days: ${r.daysAdded} added, ${r.daysChanged} changed.`];
+      if (r.removed) lines.push(`Removed: ${r.removed}`);
       if (r.revised.length) lines.push(`Revised: ${r.revised.join(', ')}`);
       if (r.shots) lines.push(`Screenshots restored: ${r.shots}`);
       showRes(lines.join('\n'), true);
@@ -1903,7 +1931,7 @@ async function openSettings() {
           if (!confirm('Delete ALL pairings, days, screenshots and the flight log from this device? This cannot be undone.')) return;
           await dbClear('pairings'); await dbClear('days'); await dbClear('shots'); await dbDel('meta', 'logbook'); await dbDel('meta', 'stations');
           S.pairings = []; S.days = []; S.shots = []; S.logbook = { airports: {}, legs: [] }; S.stations = {}; S.lbVer++;
-          S.sync.shas = {}; await dbPut('meta', { k: 'sync', v: S.sync });
+          S.sync.shas = {}; S.sync.removed = { pairings: [], days: [] }; await dbPut('meta', { k: 'sync', v: S.sync });
           closeSheet(); render(); toast('All data deleted');
         } }, icon('trash', 18), 'Delete all data'))));
   if (FAM()) sheet.querySelectorAll('.full-only').forEach(e => e.remove());
