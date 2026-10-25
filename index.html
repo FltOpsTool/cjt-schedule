@@ -394,6 +394,39 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
   .grid[data-tight="1"] .cell.oo .ic,.grid[data-tight="2"] .cell.oo .ic{width:clamp(22px,calc(var(--rh) * .42),40px);height:clamp(22px,calc(var(--rh) * .42),40px)}
 }
 @media (min-width:600px) and (max-height:620px){.top h1 small{display:none}}
+/* ---- 1.14.0 desktop and iPad landscape: tabs on a left rail, wider calendar with fuller day cells ---- */
+.det,.rte,.hrs{display:none}
+@media (min-width:900px){
+  :root{--railw:calc(80px + env(safe-area-inset-left));--tabh:0px}
+  body{padding-left:var(--railw)}
+  .tabbar{top:0;bottom:auto;left:0;right:auto;width:var(--railw);height:100vh;height:100dvh;flex-direction:column;justify-content:flex-start;gap:6px;padding:calc(12px + env(safe-area-inset-top)) 6px 12px calc(6px + env(safe-area-inset-left));border-top:0;border-right:1px solid var(--line)}
+  .tabbar button{flex:none;width:100%;min-height:68px;border-radius:12px}
+  .tabbar button:hover{background:var(--surface2)}
+  .tabbar button[aria-current="page"]{background:var(--surface2);box-shadow:inset 3px 0 0 var(--accent)}
+  #pilots,#globe{left:var(--railw)}
+  .app.wide{max-width:none;padding:0 20px}
+  .layout{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px}
+  .cell{container-type:inline-size}
+  @container (min-width:98px){
+    .lbl{display:none}
+    .det{display:block;font-size:clamp(10.5px,7.4cqi,14px);font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rte{font-size:clamp(9.5px,6.2cqi,12.5px);color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .grid[data-tight="0"] .rte{display:block}
+    .grid[data-tight="2"] .det{display:none}
+    .grid[data-tight="2"] .lbl{display:block}
+    .ic{width:clamp(18px,calc(var(--rh) * .24),30px);height:clamp(18px,calc(var(--rh) * .24),30px)}
+    .ic-sim{width:clamp(20px,calc(var(--rh) * .27),34px);height:clamp(20px,calc(var(--rh) * .27),34px)}
+  }
+  @container (max-width:127px){
+    .dc{display:none}
+  }
+  @container (min-width:146px){
+    .chip-day .hrs{display:inline;font-weight:700}
+  }
+}
+@media (min-width:1280px){
+  .layout{grid-template-columns:minmax(0,1.9fr) minmax(420px,1fr)}
+}
 </style>
 </head>
 <body>
@@ -640,7 +673,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.13.1';
+const APP_VERSION = '1.14.0';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1548,6 +1581,22 @@ function dayIcon(k) {
   return w;
 }
 function legItem(name, label) { const w = dayIcon(name); w.style.width = w.style.height = '22px'; return h('span', {}, w, label); }
+/* Report and release times plus the route flown on one calendar day. Shown in the day cell when it is wide enough (desktop, iPad landscape). */
+function dayDetail(p, key) {
+  const [ds, de] = dayBounds(key);
+  const z = S.mode === 'utc' ? 'Z' : '';
+  const times = p.duties.filter(d => Date.parse(d.start.t) < de && Date.parse(d.end.t) > ds).map(d => {
+    const a = Date.parse(d.start.t), b = Date.parse(d.end.t);
+    return `${a >= ds ? view(d.start, S.mode).time + z : '...'}-${b <= de ? view(d.end, S.mode).time + z : '...'}`;
+  }).join(' ');
+  const r = [];
+  for (const l of legsOf(p).filter(x => Date.parse(x.out.t) < de && Date.parse(x.in.t) > ds)) {
+    if (!r.length) r.push(l.from);
+    if (r[r.length - 1] !== l.from) r.push(l.from);
+    if (r[r.length - 1] !== l.to) r.push(l.to);
+  }
+  return { times, route: r.length > 1 ? r.map(stCity).join(' › ') : '' };
+}
 function cellFor(key, cur) {
   const items = S.pairings.filter(p => hasDay(p, key));
   const day = S.days.find(d => d.date === key);
@@ -1555,7 +1604,11 @@ function cellFor(key, cur) {
   const desc = [day ? day.label || day.type : null, ...items.map(p => `pairing ${p.id}`)].filter(Boolean).join(', ') || 'no duty';
   const kids = [h('span', { class: 'dn', text: String(+key.slice(8)) })];
   const seq = [];
-  if (day) kids.push(h('div', { class: 'chip-day' + (day.type === 'office' ? ' office' : ' other'), text: (day.label || day.type).toUpperCase() }));
+  if (day) {
+    const z0 = t => String(t).replace(/^0(\d:)/, '$1');
+    const hrs = day.start && day.end ? `${z0(day.start)}-${z0(day.end)}` : day.type === 'office' ? '9:00-17:00' : '';
+    kids.push(h('div', { class: 'chip-day' + (day.type === 'office' ? ' office' : ' other') }, (day.label || day.type).toUpperCase(), hrs ? h('span', { class: 'hrs', text: ' ' + hrs }) : null));
+  }
   if (day && day.type === 'office') seq.push({ t: (() => { const m = /^(\d{1,2}):(\d{2})/.exec(day.start || '09:00'); return m ? (+m[1] * 60 + +m[2]) / 14.4 : 37.5; })(), k: 'desktop' });
   let touched = false;
   for (const p of items) {
@@ -1566,7 +1619,10 @@ function cellFor(key, cur) {
     if (g.ext) bar.append(h('i', { class: 'ext', style: `left:${g.ext.l}%;width:${g.ext.w}%` }));
     g.duties.forEach(d => bar.append(h('i', { class: 'duty', style: `left:${d.l}%;width:${d.w}%` })));
     g.legs.forEach(l => bar.append(h('i', { class: 'leg ' + l.kind, style: `left:${l.l}%;width:${l.w}%` })));
-    kids.push(bar, h('span', { class: 'lbl', text: pCode(p) }));
+    const dd = dayDetail(p, key);
+    kids.push(bar, h('span', { class: 'lbl', text: pCode(p) }),
+      dd.times ? h('span', { class: 'det' }, h('span', { class: 'dc', text: pCode(p) + ' ' }), dd.times) : h('span', { class: 'det', text: pCode(p) }),
+      dd.route ? h('span', { class: 'rte', text: dd.route }) : null);
   }
   seq.sort((x, y) => x.t - y.t);
   const picked = seq.map(x => x.k).filter((k, i, arr) => i === 0 || k !== arr[i - 1]);
@@ -1684,10 +1740,10 @@ function render() {
   const nc = nextCard(); if (nc) kids.push(nc);
   kids.push(
     h('div', { class: 'monthbar' },
-      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Previous month', onclick: () => shiftMonth(-1) }, icon('left')),
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Previous month', title: 'Previous month (left arrow)', onclick: () => shiftMonth(-1) }, icon('left')),
       h('h2', {}, h('button', { type: 'button', class: 'mtitle', 'aria-label': 'Jump to a month and year', onclick: openMonthPicker, text: title })),
-      h('button', { type: 'button', class: 'todaybtn', onclick: () => { const k = keyOf(Date.now(), S.baseTz); S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 }; render(); }, text: 'Today' }),
-      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Next month', onclick: () => shiftMonth(1) }, icon('right'))),
+      h('button', { type: 'button', class: 'todaybtn', title: 'Go to today (T)', onclick: () => { const k = keyOf(Date.now(), S.baseTz); S.month = { y: +k.slice(0, 4), m: +k.slice(5, 7) - 1 }; render(); }, text: 'Today' }),
+      h('button', { type: 'button', class: 'iconbtn', 'aria-label': 'Next month', title: 'Next month (right arrow)', onclick: () => shiftMonth(1) }, icon('right'))),
     h('div', { class: 'week' }, DOW.map(d => h('div', { text: d }))),
     gridEl(),
     h('div', { class: 'legend' },
@@ -2048,6 +2104,28 @@ function buildTabBar() {
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); S.installEvt = e; });
 window.addEventListener('appinstalled', () => { S.installEvt = null; });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (!sheets.length) render(); autoSync(false); } });
+/* Keyboard (desktop): arrows or PageUp/PageDown change month, T is today, 1 2 3 switch tabs, Esc closes the open panel. */
+document.addEventListener('keydown', e => {
+  if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target, tag = t && t.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+  const k = e.key;
+  if (k === 'Escape') {
+    if (sheets.length) { e.preventDefault(); closeSheet(); }
+    else if (S.tab === 'schedule' && isWide() && (S.sel || S.selDay)) { e.preventDefault(); clearPane(); }
+    return;
+  }
+  if (sheets.length) return;
+  if (k === '1' || k === '2' || k === '3') {
+    const tab = ['schedule', 'globe', 'pilots'][+k - 1];
+    if (tab === 'pilots' && FAM()) return;
+    e.preventDefault(); setTab(tab); return;
+  }
+  if (S.tab !== 'schedule') return;
+  if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); shiftMonth(-1); }
+  else if (k === 'ArrowRight' || k === 'PageDown') { e.preventDefault(); shiftMonth(1); }
+  else if (k === 't' || k === 'T') { e.preventDefault(); const kk = keyOf(Date.now(), S.baseTz); S.month = { y: +kk.slice(0, 4), m: +kk.slice(5, 7) - 1 }; render(); }
+});
 setInterval(() => {
   document.querySelectorAll('.cd[data-st]').forEach(el => { const st = +el.dataset.st; if (st) el.textContent = countdown(st - Date.now()); });
 }, 30000);
