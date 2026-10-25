@@ -69,7 +69,7 @@ A simpler read-only view for family devices. It shows report and release times, 
 
 - Switch a device: Settings, View, Family. On Android Chrome you can also open the app with `?view=family` added to the address.
 - On iPhone or iPad, a Home Screen app has its own storage, so set the view inside the installed app (Settings, View, Family).
-- Each flight or positioning leg has two small tracking buttons, **F/Aware** (FlightAware) and **FR24 (live only)** (Flightradar24). They need a connection. The short labels (from 1.16.3) keep both buttons on one line on a phone and iPad. Flightradar24 only shows a flight while it is in the air; FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
+- Each flight or positioning leg has two small tracking buttons, **FlightAware** and **FR24 (live only)** (Flightradar24). They need a connection. The two buttons stay together on one line on a phone and iPad. Flightradar24 only shows a flight while it is in the air; FlightAware shows the most recent flight for that number, which is fine for family. The link formats are unverified, so report any that fail.
 - Tracking covers Cargojet flights (W8 377 becomes CJT377) and, from 1.16.3, positioning legs on a commercial flight with an airline-code number (for example AC123 or PD595). Limo and ground legs have no tracking link.
 
 ### Compact trip header in Family view (1.16.3)
@@ -89,9 +89,13 @@ Pairings were made shorter so a trip does not run for several screens.
 
 ## Active-part highlight (NOW)
 
-When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it. From 1.16.0 the outline is amber (not blue, so it stands out from the rest of the app) and it flashes a few times when the pairing opens to catch the eye. The flash respects the device "reduce motion" setting.
+When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it in amber (not blue, so it stands out from the rest of the app). From 1.16.4 the amber box blinks twice over about a second when the pairing opens, then holds the amber outline. The blink is on the outline itself, so it shows on all four sides and is not clipped by the panel. The flash respects the device "reduce motion" setting.
 
-From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty. From 1.16.2 the cell has a light amber fill and the flash is a slower, stronger pulse (three pulses).
+From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty. From 1.16.2 the cell has a light amber fill and a slower, stronger pulse (three pulses).
+
+## Office days
+
+Office days show on the calendar in the wider iPad and desktop layouts. From 1.16.4 the office pill is a soft amber tint (rather than a solid block, which made the calendar busy), with the word OFFICE on top and the hours on a second row. On a phone the office day shows only its icon.
 
 ## Calendar icons
 

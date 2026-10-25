@@ -25,7 +25,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --bg:#0b1220; --surface:#141d30; --surface2:#1b2740; --line:#2a3858; --line2:#1f2b46;
   --text:#e9eef7; --muted:#93a1bb; --accent:#4fc3dc; --accent-ink:#06222a;
   --flight:#ffd400; --flight-ink:#14110a; --dead:#ff4fd8; --dead-ink:#14110a; --event:#b266ff; --event-ink:#12091c;
-  --office:#d98a1b; --office-ink:#1b1200;
+  --office:#d98a1b; --office-ink:#1b1200; --office-soft:rgba(217,138,27,.20); --office-soft-ink:#e4b05a;
   --warn:#ff8a65; --ok:#58d68d;
   --now:#ff7a1a; --now-ink:#1a0d00; --now-soft:rgba(255,122,26,.22);
   --inset:#0f1729; --head:#101a2c; --dim:#10182a;
@@ -46,7 +46,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --bg:#f3f5f9; --surface:#ffffff; --surface2:#eaeef6; --line:#cdd6e6; --line2:#dde4f0;
   --text:#101828; --muted:#566178; --accent:#0a6f8a; --accent-ink:#ffffff;
   --flight:#c27d00; --flight-ink:#120b00; --dead:#c4188f; --dead-ink:#ffffff; --event:#7b1fe0; --event-ink:#ffffff;
-  --office:#f0a53a; --office-ink:#2a1700;
+  --office:#f0a53a; --office-ink:#2a1700; --office-soft:rgba(224,150,40,.22); --office-soft-ink:#8a5712;
   --warn:#b4400f; --ok:#15703f;
   --now:#e8590c; --now-ink:#ffffff; --now-soft:rgba(232,89,12,.18);
   --inset:#f4f6fb; --head:#e6ebf4; --dim:#edf0f6;
@@ -144,7 +144,7 @@ a{color:inherit}
 .bar .leg.deadhead,.bar .leg.ground{background:var(--dead)}
 .bar .leg.event{background:var(--event)}
 .lbl{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.chip-day{background:var(--office);color:var(--office-ink);font-size:9px;font-weight:800;letter-spacing:.02em;border-radius:4px;padding:4px 0;text-align:center;margin-top:1px;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.chip-day{background:var(--office-soft);color:var(--office-soft-ink);font-size:9px;font-weight:800;letter-spacing:.02em;border-radius:4px;padding:4px 0;text-align:center;margin-top:1px;overflow:hidden;text-overflow:clip;white-space:nowrap}
 .chip-day.other{background:#5b6b8c;color:#fff}
 .ci{display:flex;gap:2px;justify-content:flex-end;align-items:flex-end;margin-top:auto;min-height:21px;pointer-events:none}
 .ic{display:inline-flex;width:21px;height:21px;flex:none}
@@ -210,6 +210,7 @@ a{color:inherit}
 .t-big .ab{font-size:13px;font-weight:700;color:var(--muted)}
 .t-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.trks{display:flex;flex-wrap:nowrap;gap:6px}
 .chip.trk{min-height:40px;padding:0 13px;text-decoration:none;border-color:var(--accent);color:var(--accent);font-weight:700;white-space:nowrap}
 .chip{display:inline-flex;align-items:center;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--inset);border:1px solid var(--line);min-height:28px}
 button.chip{min-height:40px;padding:0 14px}
@@ -361,16 +362,11 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 }
 @media (max-height:520px) and (orientation:landscape){.gl-ctl{top:calc(56px + env(safe-area-inset-top))}}
 @media (min-width:900px){.app.wide{padding-bottom:var(--tabh)}.layout{min-height:calc(100vh - var(--tabh));min-height:calc(100dvh - var(--tabh))}.pane{height:calc(100vh - var(--tabh));height:calc(100dvh - var(--tabh))}}
-.now-active{outline:3px solid var(--now);outline-offset:2px;box-shadow:0 0 0 7px var(--now-soft);border-radius:12px}
-.now-active.now-flash{animation:nowflash 1.9s ease-in-out}
+.now-active{outline:3px solid var(--now);outline-offset:2px;box-shadow:0 0 0 4px var(--now-soft);border-radius:12px}
+.now-active.now-flash{animation:nowflash 1.1s ease-in-out}
 @keyframes nowflash{
-  0%{outline-color:var(--now);box-shadow:0 0 0 7px var(--now-soft)}
-  12%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
-  26%{outline-color:var(--now);box-shadow:0 0 0 12px var(--now-soft)}
-  40%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
-  54%{outline-color:var(--now);box-shadow:0 0 0 12px var(--now-soft)}
-  68%{outline-color:transparent;box-shadow:0 0 0 12px transparent}
-  100%{outline-color:var(--now);box-shadow:0 0 0 7px var(--now-soft)}
+  0%,50%,100%{outline-color:var(--now);outline-width:4px}
+  25%,75%{outline-color:transparent;outline-width:4px}
 }
 @media (prefers-reduced-motion:reduce){.now-active.now-flash{animation:none}}
 .now-duty{box-shadow:inset 0 0 0 2px var(--now);border-radius:12px}
@@ -457,7 +453,7 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
     .dc{display:none}
   }
   @container (min-width:146px){
-    .chip-day .hrs{display:inline;font-weight:700}
+    .chip-day .hrs{display:block;font-weight:700;opacity:.92;margin-top:1px}
   }
 }
 @media (min-width:1280px){
@@ -709,7 +705,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.3';
+const APP_VERSION = '1.16.4';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1416,9 +1412,9 @@ function legCard(l, opts) {
   const cs = l.log ? null : callsignOf(l);
   if (cs) {
     const trk = (label, aria, href) => h('a', { class: 'chip trk', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Track ${cs} on ${aria}`, text: label });
-    chips.push(
-      trk('F/Aware', 'FlightAware', `https://flightaware.com/live/flight/${cs}`),
-      trk('FR24 (live only)', 'Flightradar24, live flights only', `https://www.flightradar24.com/${cs}`));
+    chips.push(h('div', { class: 'trks' },
+      trk('FlightAware', 'FlightAware', `https://flightaware.com/live/flight/${cs}`),
+      trk('FR24 (live only)', 'Flightradar24, live flights only', `https://www.flightradar24.com/${cs}`)));
   }
   if (l.locator && !FAM()) chips.push(h('button', { type: 'button', class: 'chip', 'aria-label': `Copy booking locator ${l.locator}`, onclick: () => copyText(l.locator), text: `Booking ${l.locator}` }));
   if (l.note && !FAM()) chips.push(h('span', { class: 'chip', text: l.note }));
