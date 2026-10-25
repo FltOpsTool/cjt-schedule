@@ -37,7 +37,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --notice-bg:#2a2a12; --notice-line:#6a6a22; --notice-ink:#f3efb0;
   --danger-bg:#3b1a1a; --danger-line:#7a2f2f; --danger-ink:#ffb4b4;
   --pill-bg:#12331f; --pill-line:#1f5a38; --pill-ink:#58d68d;
-  --today-bg:#183150; --toast-bg:#e9eef7; --toast-ink:#0b1220;
+  --today-bg:rgba(255,122,26,.23); --today-hi:rgba(255,122,26,.42); --toast-bg:#e9eef7; --toast-ink:#0b1220;
   --backdrop:rgba(4,8,16,.7);
   --good:#9be8bd; --bad:#ffb4b4;
 }
@@ -58,7 +58,7 @@ if(t==='day'){document.querySelector('meta[name=theme-color]').setAttribute('con
   --notice-bg:#fff8d4; --notice-line:#e2d369; --notice-ink:#5a5210;
   --danger-bg:#fdecec; --danger-line:#e3a0a0; --danger-ink:#a12a2a;
   --pill-bg:#dff5e8; --pill-line:#9bd7b4; --pill-ink:#15703f;
-  --today-bg:#dcedf5; --toast-bg:#101828; --toast-ink:#f3f5f9;
+  --today-bg:#ffe8cf; --today-hi:#ffd4a3; --toast-bg:#101828; --toast-ink:#f3f5f9;
   --backdrop:rgba(16,24,40,.45);
   --good:#15703f; --bad:#a12a2a;
 }
@@ -119,15 +119,11 @@ a{color:inherit}
 .cell.dim{background:var(--dim)}
 .cell.dim .dn{opacity:.55}
 .cell.today{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now)}
-.cell.today.today-flash{animation:todayflash 1.9s ease-in-out}
-@keyframes todayflash{
-  0%{box-shadow:inset 0 0 0 2.5px var(--now)}
-  15%{box-shadow:inset 0 0 0 2.5px transparent}
-  30%{box-shadow:inset 0 0 0 3px var(--now)}
-  45%{box-shadow:inset 0 0 0 2.5px transparent}
-  60%{box-shadow:inset 0 0 0 3px var(--now)}
-  75%{box-shadow:inset 0 0 0 2.5px transparent}
-  100%{box-shadow:inset 0 0 0 2.5px var(--now)}
+.cell.today.today-flash{animation:todaypulse 1.05s ease-in-out 3}
+@keyframes todaypulse{
+  0%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now),0 0 0 0 var(--now-soft)}
+  50%{background:var(--today-hi);box-shadow:inset 0 0 0 3.5px var(--now),0 0 0 9px var(--now-soft)}
+  100%{background:var(--today-bg);box-shadow:inset 0 0 0 2.5px var(--now),0 0 0 0 var(--now-soft)}
 }
 @media (prefers-reduced-motion:reduce){.cell.today.today-flash{animation:none}}
 .cell.nextd{box-shadow:inset 0 0 0 2px var(--accent)}
@@ -711,7 +707,7 @@ function CJTGlobe(canvas, LAND, DATA0, hooks) {
 (() => {
 'use strict';
 
-const APP_VERSION = '1.16.1';
+const APP_VERSION = '1.16.2';
 const MS = 60000;
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

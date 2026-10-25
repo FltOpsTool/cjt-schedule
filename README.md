@@ -86,7 +86,7 @@ Pairings were made shorter so a trip does not run for several screens.
 
 When you open a pairing that is in progress, the app scrolls to the active part (a flight, ground time, or a layover) and outlines it. From 1.16.0 the outline is amber (not blue, so it stands out from the rest of the app) and it flashes a few times when the pairing opens to catch the eye. The flash respects the device "reduce motion" setting.
 
-From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty.
+From 1.16.1 the current date on the calendar also has an amber box (not the old blue, which blended in) and flashes a few times when you land on the month that contains today, so you can spot the date even when it has no duty. From 1.16.2 the cell has a light amber fill and the flash is a slower, stronger pulse (three pulses).
 
 ## Calendar icons
 
